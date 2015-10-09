@@ -93,8 +93,8 @@ ninja install
 
 Собирать LLVM+Clang *приятнее* c помощью Clang, для этого перед выполнением команды CMake можно выполнить следующее (при условии того, что один раз сборка уже была осуществлена)
 ```
-export СС=$ROOSTER_HOME/install/Release/bin/clang
-export СXX=$ROOSTER_HOME/install/Release/bin/clang++
+export CC=$ROOSTER_HOME/install/Release/bin/clang
+export CXX=$ROOSTER_HOME/install/Release/bin/clang++
 ```
 
 ### Запуск на примере
