@@ -16,14 +16,16 @@ cd extra
 ```
 ### Клонирование кода Rooster ###
 ```
-git clone git@bitbucket.org:ValeriySavchenko/rooster.git
+git clone git@bitbucket.org:{YOUR_BITBUCKET_LOGIN}/rooster.git
 
 ```
 или
 ```
-git clone https://ValeriySavchenko@bitbucket.org/ValeriySavchenko/rooster.git
+git clone https://{YOUR_BITBUCKET_LOGIN}@bitbucket.org/ValeriySavchenko/rooster.git
 ```
 (для использования первого варианта, необходимо добавить ssh ключи к вашей учетной записи - [how-to](https://confluence.atlassian.com/bitbucket/set-up-ssh-for-git-728138079.html))
+
+(обе ссылки можно найти на [главной](https://bitbucket.org/ValeriySavchenko/rooster) в правом верхнем углу)
 
 ### Добавление Rooster в процесс сборки LLVM+Clang ###
 
@@ -35,11 +37,21 @@ add_subdirectory(rooster)
 
 ### Установка зависимостей сборки
 ```
-sudo apt-get install gcc g++ python libtool m4 autoconf automake libtool zlib1g-dev ninja cmake
+sudo apt-get install gcc g++ python libtool m4 autoconf automake libtool zlib1g-dev ninja-build cmake
 ```
 Подробнее можно прочитать [здесь](http://llvm.org/docs/GettingStarted.html#software)
 
 Установка указана для Linux систем, на других системах установите аналогичные пакеты.
+
+Если пакета ninja-build нет, то необходимо установить его из исходников. Для этого в какой-нибудь отдельной директории (например, ```~/sources```) выполните следующие команды:
+
+```
+git clone https://github.com/martine/ninja.git
+cd ninja
+git checkout release
+./bootstrap.py
+sudo cp ninja /usr/bin/
+```
 
 ### Сборка
 Для работы рекомендуется создавать отдельные директории для объектных файлов и для сборок, причем держать отдельные поддиректории для разных видов сборки (Release, Debug)
