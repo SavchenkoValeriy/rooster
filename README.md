@@ -101,9 +101,52 @@ export CXX=$ROOSTER_HOME/install/Release/bin/clang++
 
 Среди исполняемых файлов будет также и ```rooster```. Для того, чтобы запустить его на тестовом файле test.cpp выполните
 ```
-$ROOSTER_HOME/install/bin/rooster test.cpp --
+$ROOSTER_HOME/install/Release/bin/rooster test.cpp --
 ```
 После -- указываются опции специфичные для компилятора, например, стандарт C++11:
 ```
-$ROOSTER_HOME/install/bin/rooster test.cpp -- -std=c++11
+$ROOSTER_HOME/install/Release/bin/rooster test.cpp -- -std=c++11
+```
+
+## Как собрать Python код ##
+
+### Предусловие сборки ###
+
+Должна быть собрана C++ часть.
+
+### Установка virtualenv ###
+
+virtualenv - инструмент для создания изолированного окружения для языка Python.
+
+Для установки python, pip и virtualenv выполните следующие команды
+```
+sudo apt-get install python python-pip python-virtualenv
+```
+
+### Установка изолированного окружения ###
+Для создания изолированного окружения выполните:
+```
+cd $ROOSTER_HOME/llvm/tools/clang/tools/extra/rooster/python
+virtualenv rooster_env
+```
+Для переход в созданное окружение:
+```
+source rooster_env/bin/activate
+```
+Для установки необходимых пакетов в окружение:
+```
+pip install -r requirements.txt
+```
+
+Создание окружения и устновка пакетов делается один раз.
+
+### Добавление пути к библиотеке Clang ###
+Если запустить скрипт на данном этапе на каком-то исходном файле, то он выдаст ошибку, что не знает где находится *libclang*. Можно сделать это и программными средствами, но чтобы не добавлять в код констант, зависящих от системы, необходимо указать переменную окружения.
+```
+export LD_LIBRARY_PATH=$ROOSTER_HOME/install/Release/lib
+```
+
+### Запуск на примере
+```
+python rooster.py test.cpp
 ```
