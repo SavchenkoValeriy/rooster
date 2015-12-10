@@ -10,4 +10,8 @@
 #define DECL(CLASS, BASE) DEFINE_FOR_ALL(CLASS##Decl)
 #include "clang/AST/DeclNodes.inc"
 
+#define ABSTRACT_TYPE(CLASS, BASE)
+#define TYPE(CLASS, BASE) DEFINE_FOR_ALL(CLASS##Type)
+#include "clang/AST/TypeNodes.def"
+
 #undef DEFINE_FOR_ALL
