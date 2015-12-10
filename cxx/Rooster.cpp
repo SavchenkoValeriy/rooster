@@ -25,35 +25,20 @@ static cl::extrahelp MoreHelp("\nMore help text...");
 template <typename ExprT>
 struct ASTExprTraits;
 
-
 enum class ExpressionsTypes {
-#define STMT(CLASS, PARENT)                                                    \
+#define DEFINE_FOR_ALL(CLASS)                                                  \
   ET_##CLASS,
-#include "clang/AST/StmtNodes.inc"
-#undef STMT
-#define DECL(CLASS, BASE)                                                      \
-  ET_##CLASS##Decl,
-#include "clang/AST/DeclNodes.inc"
-#undef DECL
+#include "ASTMacroHelpers.h"
   ET_None
 };
 
-#define STMT(CLASS, PARENT)                                                    \
+#define DEFINE_FOR_ALL(CLASS)                                                  \
 template<>                                                                     \
 struct ASTExprTraits<CLASS> {                                                  \
   static constexpr auto name = #CLASS ;                                        \
-  enum {value = static_cast<int>(ExpressionsTypes::ET_##CLASS)};               \
+  static constexpr int value = static_cast<int>(ExpressionsTypes::ET_##CLASS); \
 };
-#include "clang/AST/StmtNodes.inc"
-#undef STMT
-#define DECL(CLASS, BASE)                                                      \
-template<>                                                                     \
-struct ASTExprTraits<CLASS##Decl> {                                            \
-  static constexpr auto name = #CLASS "Decl" ;                                 \
-  enum {value = static_cast<int>(ExpressionsTypes::ET_##CLASS##Decl)};         \
-};
-#include "clang/AST/DeclNodes.inc"
-#undef DECL
+#include "ASTMacroHelpers.h"
 
 class ASTProcessor : public ASTConsumer,
                      public RecursiveASTVisitor<ASTProcessor> {
@@ -67,20 +52,12 @@ public:
     llvm::outs() << ASTExprTraits<ExprT>::name << "\n";
   }
 
-
-  #define STMT(CLASS, PARENT)                                                  \
+#define DEFINE_FOR_ALL(CLASS)                                                  \
   bool Visit##CLASS(CLASS *S) {                                                \
     Visit(S);                                                                  \
     return true;                                                               \
   }
-  #include "clang/AST/StmtNodes.inc"
-
-  #define DECL(CLASS, BASE)                                                    \
-  bool Visit##CLASS##Decl(CLASS##Decl *D) {                                    \
-    Visit(D);                                                                  \
-    return true;                                                               \
-  }
-  #include "clang/AST/DeclNodes.inc"
+#include "ASTMacroHelpers.h"
 };
 
 void ASTProcessor::HandleTranslationUnit(ASTContext &Ctx) {
@@ -96,7 +73,7 @@ protected:
 
 std::unique_ptr<ASTConsumer>
 ASTProcessorAction::CreateASTConsumer(CompilerInstance &CI,
-                                       StringRef InFile) {
+                                      StringRef InFile) {
   return llvm::make_unique<ASTProcessor>();
 }
 
