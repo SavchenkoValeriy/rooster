@@ -5,6 +5,8 @@
 #include "clang/Tooling/Tooling.h"
 // Declares llvm::cl::extrahelp.
 #include "llvm/Support/CommandLine.h"
+#include "core/Ngram.h"
+#include "core/NgramCollector.h"
 
 using namespace clang::tooling;
 using namespace llvm;
@@ -44,12 +46,14 @@ class ASTProcessor : public ASTConsumer,
                      public RecursiveASTVisitor<ASTProcessor> {
 private:
   using base = RecursiveASTVisitor<ASTProcessor>;
+  NgramCollector<Ngram<StringRef, 3>> collector;
 public:
   void HandleTranslationUnit(ASTContext &Ctx) override;
 
   template <typename ExprT>
   void Visit(ExprT *expr) {
     llvm::outs() << ASTExprTraits<ExprT>::name << "\n";
+    collector.process(ASTExprTraits<ExprT>::name);
   }
 
 #define DEFINE_FOR_ALL(CLASS)                                                  \
@@ -63,6 +67,7 @@ public:
 void ASTProcessor::HandleTranslationUnit(ASTContext &Ctx) {
   auto TranslationUnitDecl = Ctx.getTranslationUnitDecl();
   TraverseDecl(TranslationUnitDecl);
+  llvm::outs() << collector;
 }
 
 class ASTProcessorAction : public ASTFrontendAction {
