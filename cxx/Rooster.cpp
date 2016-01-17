@@ -1,3 +1,4 @@
+#include <cxx/support/CommandLineOptions.h>
 #include "clang/AST/RecursiveASTVisitor.h"
 // Declares clang::SyntaxOnlyAction.
 #include "clang/Frontend/FrontendActions.h"
@@ -14,7 +15,7 @@ using namespace clang;
 
 // Apply a custom category to all command-line options so that they are the
 // only ones displayed.
-static llvm::cl::OptionCategory MyToolCategory("my-tool options");
+static llvm::cl::OptionCategory RoosterCategory("rooster options");
 
 // CommonOptionsParser declares HelpMessage with a description of the common
 // command-line options related to the compilation database and input files.
@@ -92,9 +93,9 @@ ASTProcessorAction::CreateASTConsumer(CompilerInstance &CI,
 }
 
 int main(int argc, const char **argv) {
-  CommonOptionsParser OptionsParser(argc, argv, MyToolCategory);
+  CommandLineOptions OptionsParser(argc, argv, RoosterCategory);
   ClangTool Tool(OptionsParser.getCompilations(),
-                 OptionsParser.getCompilations().getAllFiles());
+                 OptionsParser.getSourcePathList());
   int result = Tool.run(newFrontendActionFactory<ASTProcessorAction>().get());
   llvm::outs() << collector;
   return result;
