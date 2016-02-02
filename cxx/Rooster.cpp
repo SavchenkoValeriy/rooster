@@ -27,6 +27,8 @@ static cl::extrahelp MoreHelp("\nMore help text...");
 template <typename ExprT>
 struct ASTExprTraits;
 
+NgramCollector<Ngram<StringRef, 3>> collector;
+
 enum class ExpressionsTypes {
 #define DEFINE_FOR_ALL(CLASS)                                                  \
   ET_##CLASS,
@@ -46,28 +48,35 @@ class ASTProcessor : public ASTConsumer,
                      public RecursiveASTVisitor<ASTProcessor> {
 private:
   using base = RecursiveASTVisitor<ASTProcessor>;
-  NgramCollector<Ngram<StringRef, 3>> collector;
 public:
   void HandleTranslationUnit(ASTContext &Ctx) override;
 
   template <typename ExprT>
   void Visit(ExprT *expr) {
-    llvm::outs() << ASTExprTraits<ExprT>::name << "\n";
     collector.process(ASTExprTraits<ExprT>::name);
   }
 
 #define DEFINE_FOR_ALL(CLASS)                                                  \
-  bool Visit##CLASS(CLASS *S) {                                                \
+  bool Visit##CLASS(CLASS *S);
+#include "ASTMacroHelpers.h"
+};
+
+template <>
+void ASTProcessor::Visit(TranslationUnitDecl *expr) {
+  collector.startNewFile();
+  collector.process(ASTExprTraits<TranslationUnitDecl>::name);
+}
+
+#define DEFINE_FOR_ALL(CLASS)                                                  \
+  bool ASTProcessor::Visit##CLASS(CLASS *S) {                                  \
     Visit(S);                                                                  \
     return true;                                                               \
   }
 #include "ASTMacroHelpers.h"
-};
 
 void ASTProcessor::HandleTranslationUnit(ASTContext &Ctx) {
   auto TranslationUnitDecl = Ctx.getTranslationUnitDecl();
   TraverseDecl(TranslationUnitDecl);
-  llvm::outs() << collector;
 }
 
 class ASTProcessorAction : public ASTFrontendAction {
@@ -85,6 +94,8 @@ ASTProcessorAction::CreateASTConsumer(CompilerInstance &CI,
 int main(int argc, const char **argv) {
   CommonOptionsParser OptionsParser(argc, argv, MyToolCategory);
   ClangTool Tool(OptionsParser.getCompilations(),
-                 OptionsParser.getSourcePathList());
-  return Tool.run(newFrontendActionFactory<ASTProcessorAction>().get());
+                 OptionsParser.getCompilations().getAllFiles());
+  int result = Tool.run(newFrontendActionFactory<ASTProcessorAction>().get());
+  llvm::outs() << collector;
+  return result;
 }

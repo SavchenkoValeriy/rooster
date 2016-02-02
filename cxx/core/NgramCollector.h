@@ -48,6 +48,9 @@ public:
   void process(const typename Ngram::UnitType &element) {
     add(Ngram(currentNgram, element));
   }
+  void startNewFile() {
+    currentNgram = nullptr;
+  }
   friend llvm::raw_ostream &operator << <> (llvm::raw_ostream &stream,
                                        const NgramCollector<Ngram> &collector);
 };
