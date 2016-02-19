@@ -2,6 +2,7 @@
 #include "clang/AST/RecursiveASTVisitor.h"
 // Declares clang::SyntaxOnlyAction.
 #include "clang/Frontend/FrontendActions.h"
+#include "clang/Frontend/CompilerInstance.h"
 #include "clang/Tooling/CommonOptionsParser.h"
 #include "clang/Tooling/Tooling.h"
 // Declares llvm::cl::extrahelp.
@@ -21,6 +22,9 @@ static llvm::cl::OptionCategory RoosterCategory("rooster options");
 // command-line options related to the compilation database and input files.
 // It's nice to have this help message in all tools.
 static cl::extrahelp CommonHelp(CommonOptionsParser::HelpMessage);
+
+static cl::opt<bool> Diagnostics("d", cl::desc("Turn on compiler errors and warnings"),
+                                 cl::cat(RoosterCategory));
 
 // A help message for this specific tool can be added afterwards.
 static cl::extrahelp MoreHelp("\nMore help text...");
@@ -89,6 +93,9 @@ protected:
 std::unique_ptr<ASTConsumer>
 ASTProcessorAction::CreateASTConsumer(CompilerInstance &CI,
                                       StringRef InFile) {
+  if (!Diagnostics) {
+    CI.getDiagnostics().setClient(new IgnoringDiagConsumer());
+  }
   return llvm::make_unique<ASTProcessor>();
 }
 

@@ -7,6 +7,7 @@ add_clang_executable(rooster
   cxx/Rooster.cpp
   )
 target_link_libraries(rooster
+  roosterSupport
   clangTooling
   clangBasic
   clangASTMatchers
