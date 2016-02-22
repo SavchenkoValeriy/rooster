@@ -23,9 +23,6 @@ static llvm::cl::OptionCategory RoosterCategory("rooster options");
 // It's nice to have this help message in all tools.
 static cl::extrahelp CommonHelp(CommonOptionsParser::HelpMessage);
 
-static cl::opt<bool> Diagnostics("d", cl::desc("Turn on compiler errors and warnings"),
-                                 cl::cat(RoosterCategory));
-
 // A help message for this specific tool can be added afterwards.
 static cl::extrahelp MoreHelp("\nMore help text...");
 
@@ -85,9 +82,25 @@ void ASTProcessor::HandleTranslationUnit(ASTContext &Ctx) {
 }
 
 class ASTProcessorAction : public ASTFrontendAction {
+public:
+  ASTProcessorAction(bool Diagnostics) : Diagnostics(Diagnostics) { }
+
 protected:
   std::unique_ptr<ASTConsumer>
   CreateASTConsumer(CompilerInstance &CI, StringRef InFile) override;
+
+private:
+  bool Diagnostics;
+};
+
+class RoosterActionFactory : public FrontendActionFactory {
+public:
+  RoosterActionFactory(CommandLineOptions &options) : options(options) { }
+  FrontendAction *create() override {
+    return new ASTProcessorAction(options.isDiagnosticOn());
+  }
+private:
+  CommandLineOptions &options;
 };
 
 std::unique_ptr<ASTConsumer>
@@ -103,7 +116,8 @@ int main(int argc, const char **argv) {
   CommandLineOptions OptionsParser(argc, argv, RoosterCategory);
   ClangTool Tool(OptionsParser.getCompilations(),
                  OptionsParser.getSourcePathList());
-  int result = Tool.run(newFrontendActionFactory<ASTProcessorAction>().get());
+  RoosterActionFactory Factory(OptionsParser);
+  int result = Tool.run(&Factory);
   llvm::outs() << collector;
   return result;
 }

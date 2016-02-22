@@ -23,8 +23,17 @@ public:
   std::vector<std::string> getSourcePathList() const {
     return Compilations->getAllFiles();
   }
+  bool isDiagnosticOn() const {
+    return DiagnosticOn;
+  }
+
+  unsigned getNgramSize() const {
+    return NgramSize;
+  }
 private:
   std::unique_ptr<clang::tooling::CompilationDatabase> Compilations;
+  bool DiagnosticOn;
+  unsigned NgramSize;
 };
 
 #endif // ROOSTER_COMMANDLINEOPTIONS_H

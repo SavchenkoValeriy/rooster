@@ -60,6 +60,12 @@ CommandLineOptions::CommandLineOptions(int &argc, const char **argv,
     cl::desc("Additional argument to prepend to the compiler command line"),
     cl::cat(Category));
 
+  static cl::opt<bool> Diagnostics("d", cl::desc("Turn on compiler errors and warnings"),
+                                   cl::cat(Category));
+
+  static cl::opt<unsigned> N("n", cl::desc("Ngram size (0,10]"),
+                             cl::init(3), cl::cat(Category));
+
   cl::HideUnrelatedOptions(Category);
 
   Compilations.reset(FixedCompilationDatabase::loadFromCommandLine(argc,
@@ -81,4 +87,7 @@ CommandLineOptions::CommandLineOptions(int &argc, const char **argv,
   AdjustingCompilations->appendArgumentsAdjuster(
     getInsertArgumentAdjuster(ArgsAfter, ArgumentInsertPosition::END));
   Compilations = std::move(AdjustingCompilations);
+
+  DiagnosticOn = Diagnostics;
+  NgramSize = N;
 }
