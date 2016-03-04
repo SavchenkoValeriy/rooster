@@ -1,8 +1,8 @@
 #include "PlainPrinter.h"
 
 PlainPrinterAction::PlainPrinterAction(const llvm::StringRef &filename) :
-  ASTAction<PlainPrinterAction>() {
-  OutputFile = std::make_shared<std::fstream>();
+  ASTAction<PlainPrinterAction>(),
+  OutputFile(std::make_shared<std::fstream>()) {
   OutputFile->open(filename, std::fstream::out);
 }
 
