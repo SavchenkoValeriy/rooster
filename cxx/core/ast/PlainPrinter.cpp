@@ -16,3 +16,9 @@ std::fstream &PlainPrinterAction::getStream() {
 
 PlainPrinterAction::PlainPrinterAction(const PlainPrinterAction &action) :
   ASTAction<PlainPrinterAction>(), OutputFile(action.OutputFile) { }
+
+template <>
+void PlainPrinter::Visit(FunctionDecl *func) {
+  parent.getStream() << ", $\n";
+  DefaultVisit(func);
+}

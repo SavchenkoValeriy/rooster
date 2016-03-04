@@ -16,6 +16,8 @@ public:
   void Visit(ExprT *node);
 private:
   Parent &parent;
+  template <class ExprT>
+  void DefaultVisit(ExprT *node);
 };
 
 class PlainPrinterAction : public ASTAction<PlainPrinterAction> {
@@ -30,8 +32,13 @@ public:
 };
 
 template <class ExprT>
-void PlainPrinter::Visit(ExprT *node) {
+void PlainPrinter::DefaultVisit(ExprT *node) {
   parent.getStream() << ASTExprTraits<ExprT>::name << ", ";
+}
+
+template <class ExprT>
+void PlainPrinter::Visit(ExprT *node) {
+  DefaultVisit(node);
 }
 
 #endif //LLVM_PLAINPRINTER_H
