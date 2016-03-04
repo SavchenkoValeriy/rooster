@@ -66,6 +66,9 @@ CommandLineOptions::CommandLineOptions(int &argc, const char **argv,
   static cl::opt<unsigned> N("n", cl::desc("Ngram size (0,10]"),
                              cl::init(3), cl::cat(Category));
 
+  static cl::opt<std::string> FileOutput("o", cl::desc("File to save information in"),
+                                         cl::init("stats.out"), cl::cat(Category));
+
   cl::HideUnrelatedOptions(Category);
 
   Compilations.reset(FixedCompilationDatabase::loadFromCommandLine(argc,
@@ -90,4 +93,5 @@ CommandLineOptions::CommandLineOptions(int &argc, const char **argv,
 
   DiagnosticOn = Diagnostics;
   NgramSize = N;
+  Output = FileOutput;
 }

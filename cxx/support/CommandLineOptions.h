@@ -30,10 +30,16 @@ public:
   unsigned getNgramSize() const {
     return NgramSize;
   }
+
+  const llvm::StringRef &getOutput() const {
+    return Output;
+  }
+
 private:
   std::unique_ptr<clang::tooling::CompilationDatabase> Compilations;
   bool DiagnosticOn;
   unsigned NgramSize;
+  llvm::StringRef Output;
 };
 
 #endif // ROOSTER_COMMANDLINEOPTIONS_H
