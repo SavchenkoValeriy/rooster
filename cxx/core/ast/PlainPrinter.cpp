@@ -61,17 +61,35 @@ namespace {
   }
 
   template <class ExprT>
+  inline SourceRange getSourceRange(ExprT *node, ...) {
+    return node->getSourceRange();
+  }
+
+  template <class ExprT>
+  inline auto getSourceRange(ExprT *node, PrinterHelper helper) ->
+  decltype((void)node->children(), SourceRange()) {
+    SourceRange range = node->getSourceRange();
+    SourceLocation nodeBegin = range.getBegin(),
+      childBegin = range.getEnd() , current;
+    llvm::errs() << "start: " << nodeBegin.printToString(helper.manager)
+    << "; end: " << childBegin.printToString(helper.manager) << "\n";
+    for (auto child: node->children()) {
+      current = child->getSourceRange().getBegin();
+      llvm::errs() << "child begin: " << current.printToString(helper.manager) << "\n";
+      if (current < childBegin) {
+        childBegin = current;
+      }
+    }
+    return {nodeBegin, childBegin};
+  }
+
+  template <class ExprT>
   inline auto getSourceRepr(ExprT *node, PrinterHelper helper) ->
   decltype((void)node->getSourceRange(), std::string()) {
     llvm::errs() << "getSourceRange category: " << getNodeName(node) << "\n";
-    // (T, U) => "T,,"
     std::string text = clang::Lexer::getSourceText(
-      CharSourceRange::getTokenRange(node->getSourceRange()), helper.manager,
-                                     LangOptions(), 0);
-    if (text.size() != 0 && text.at(text.size()-1) == ',')
-      return clang::Lexer::getSourceText(
-        CharSourceRange::getCharRange(node->getSourceRange()), helper.manager,
-                                      LangOptions(), 0);
+      CharSourceRange::getCharRange(getSourceRange(node, helper)),
+                                     helper.manager, LangOptions(), 0);
     return text;
   }
 
