@@ -4,7 +4,6 @@
 #include <fstream>
 #include "FileAction.h"
 #include "ASTAction.h"
-#include "ASTExprTraits.h"
 
 class PlainPrinterAction;
 
@@ -17,7 +16,7 @@ public:
 private:
   Parent &parent;
   template <class ExprT>
-  void DefaultVisit(ExprT *node);
+  void VisitImpl(ExprT *node);
 };
 
 class PlainPrinterAction : public ASTAction<PlainPrinterAction> {
@@ -32,13 +31,8 @@ public:
 };
 
 template <class ExprT>
-void PlainPrinter::DefaultVisit(ExprT *node) {
-  parent.getStream() << ASTExprTraits<ExprT>::name << ", ";
-}
-
-template <class ExprT>
 void PlainPrinter::Visit(ExprT *node) {
-  DefaultVisit(node);
+  VisitImpl(node);
 }
 
 #endif //LLVM_PLAINPRINTER_H

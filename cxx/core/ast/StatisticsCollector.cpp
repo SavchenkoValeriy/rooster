@@ -7,7 +7,7 @@ using namespace clang::tooling;
 template <class Action>
 void StatisticsCollector<Action>::collect(CompilationDatabase &database,
                                           std::vector<std::string> sources) {
-  ClangTool Tool(database, {sources[0], sources[1]});
+  ClangTool Tool(database, {sources[0]});
   Tool.run(ActionObject.get());
 }
 

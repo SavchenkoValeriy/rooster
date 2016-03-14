@@ -8,7 +8,7 @@ class ASTAction : public clang::ASTFrontendAction,
                   public clang::tooling::FrontendActionFactory {
 
 public:
-  virtual clang::FrontendAction *create() {
+  virtual clang::FrontendAction *create() override {
     return new Derive(getDerive());
   }
 
@@ -18,7 +18,7 @@ public:
 
 private:
   virtual std::unique_ptr<clang::ASTConsumer> CreateASTConsumer(
-    clang::CompilerInstance &CI, StringRef InFile) {
+    clang::CompilerInstance &CI, StringRef InFile) override {
     return llvm::make_unique<typename Derive::Child>(getDerive());
   };
 };
