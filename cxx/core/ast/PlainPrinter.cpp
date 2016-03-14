@@ -3,7 +3,6 @@
 
 #include <clang/Lex/Lexer.h>
 
-
 PlainPrinterAction::PlainPrinterAction(const llvm::StringRef &filename) :
   ASTAction<PlainPrinterAction>(),
   OutputFile(std::make_shared<std::fstream>()) {
@@ -37,16 +36,34 @@ template void PlainPrinter::VisitImpl<CLASS>(CLASS *);
 namespace {
   struct PrinterHelper {
     std::fstream &out;
-    clang::SourceManager &manager;
+    const clang::SourceManager &manager;
+    const clang::PrintingPolicy &policy;
   };
 
-  inline std::string getSourceRepr(...) {
+  template <class ExprT>
+  inline constexpr auto getNodeName(ExprT *node) ->
+  decltype(ASTExprTraits<ExprT>::name) {
+    return ASTExprTraits<ExprT>::name;
+  }
+
+  template <class ExprT>
+  inline std::string getSourceRepr(ExprT *node, ...) {
+    llvm::errs() << "Not a single category: " << getNodeName(node) << "\n";
     return "";
   }
 
   template <class ExprT>
   inline auto getSourceRepr(ExprT *node, PrinterHelper helper) ->
+  decltype((void)node->desugar(), std::string()) {
+    llvm::errs() << "desugar category: " << getNodeName(node) << "\n";
+    QualType desugaredType = node->desugar();
+    return desugaredType.getAsString(helper.policy);
+  }
+
+  template <class ExprT>
+  inline auto getSourceRepr(ExprT *node, PrinterHelper helper) ->
   decltype((void)node->getSourceRange(), std::string()) {
+    llvm::errs() << "getSourceRange category: " << getNodeName(node) << "\n";
     // (T, U) => "T,,"
     std::string text = clang::Lexer::getSourceText(
       CharSourceRange::getTokenRange(node->getSourceRange()), helper.manager,
@@ -59,12 +76,6 @@ namespace {
   }
 
   template <class ExprT>
-  inline constexpr auto getNodeName(ExprT *node) ->
-  decltype(ASTExprTraits<ExprT>::name) {
-    return ASTExprTraits<ExprT>::name;
-  }
-
-  template <class ExprT>
   inline void defaultVisit(ExprT *node, PrinterHelper helper) {
     helper.out << "(" << getNodeName(node) << "@@ " <<
       getSourceRepr(node, helper) << "), ";
@@ -73,5 +84,7 @@ namespace {
 
 template <class ExprT>
 void PlainPrinter::VisitImpl(ExprT *node) {
-  defaultVisit(node, {parent.getStream(), *sourceManager});
+  defaultVisit(node, {parent.getStream(),
+                      context->getSourceManager(),
+                      context->getPrintingPolicy()});
 }

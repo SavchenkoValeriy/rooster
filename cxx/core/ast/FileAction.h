@@ -13,7 +13,7 @@ private:
   using base = RecursiveASTVisitor<FileAction<Derived> >;
   Derived &getAsDerived() { return *static_cast<Derived *>(this); }
 protected:
-  SourceManager *sourceManager;
+  ASTContext *context;
 public:
   void HandleTranslationUnit(ASTContext &Ctx) override;
 
@@ -33,7 +33,7 @@ public:
 template<class Derived>
 void FileAction<Derived>::HandleTranslationUnit(ASTContext &Ctx) {
   auto TranslationUnitDecl = Ctx.getTranslationUnitDecl();
-  sourceManager = &Ctx.getSourceManager();
+  context = &Ctx;
   base::TraverseDecl(TranslationUnitDecl);
 }
 
