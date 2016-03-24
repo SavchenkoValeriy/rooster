@@ -1,6 +1,10 @@
 #ifndef LLVM_ASTEXPRTRAITS_H
 #define LLVM_ASTEXPRTRAITS_H
 
+#include <boost/hana/type.hpp>
+
+namespace hana = boost::hana;
+
 template <typename ExprT>
 struct ASTExprTraits;
 
@@ -10,6 +14,12 @@ enum class ExpressionsTypes {
 #include "ASTMacroHelpers.h"
   ET_None
 };
+
+auto hasGetBodyMethod =
+  hana::is_valid([](auto *p) -> decltype((void)p->getBody()) {});
+auto hasGetChildrenMethod =
+  hana::is_valid([](auto *p) -> decltype((void)p->children()) {});
+
 
 #define DEFINE_FOR_ALL(CLASS)                                                  \
 template<>                                                                     \

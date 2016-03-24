@@ -5,3 +5,6 @@ add_clang_library(roosterCoreAST
   FileAction.h
   ASTExprTraits.h
 )
+
+set_property(TARGET roosterCoreAST PROPERTY CXX_STANDARD 14)
+
