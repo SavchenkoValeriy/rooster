@@ -2,6 +2,12 @@
 #include "ASTExprTraits.h"
 
 #include <clang/Lex/Lexer.h>
+#include <llvm/Support/Debug.h>
+
+#include <boost/hana/fwd/eval_if.hpp>
+#include <boost/hana/optional.hpp>
+
+#define DEBUG_TYPE "plain-printer"
 
 PlainPrinterAction::PlainPrinterAction(const llvm::StringRef &filename) :
   ASTAction<PlainPrinterAction>(),
@@ -33,7 +39,7 @@ void PlainPrinter::Visit(TranslationUnitDecl *d) { }
 template void PlainPrinter::VisitImpl<CLASS>(CLASS *);
 #include "ASTMacroHelpers.h"
 
-namespace {
+namespace { // start of anonymous namespace
   struct PrinterHelper {
     std::fstream &out;
     const clang::SourceManager &manager;
@@ -48,14 +54,15 @@ namespace {
 
   template <class ExprT>
   inline std::string getSourceRepr(ExprT *node, ...) {
-    llvm::errs() << "Not a single category: " << getNodeName(node) << "\n";
+    DEBUG(llvm::errs() << "Not a single category: " << getNodeName(node) << "\n");
     return "";
   }
 
   template <class ExprT>
   inline auto getSourceRepr(ExprT *node, PrinterHelper helper) ->
   decltype((void)node->desugar(), std::string()) {
-    llvm::errs() << "desugar category: " << getNodeName(node) << "\n";
+    DEBUG(llvm::errs() << "desugar category: " << getNodeName(node) << "\n");
+
     QualType desugaredType = node->desugar();
     return desugaredType.getAsString(helper.policy);
   }
@@ -75,22 +82,37 @@ namespace {
   template <class ExprT>
   struct getSourceRange<true, true, ExprT> {
     static inline CharSourceRange eval(ExprT *node, PrinterHelper helper) {
+      DEBUG(llvm::errs() << "Has getBody: " << getNodeName(node) << "\n");
+
       CharSourceRange range = getDefaultSourceRange(node);
       range = clang::Lexer::makeFileCharRange(range, helper.manager, LangOptions());
       SourceLocation nodeBegin = range.getBegin(),
-        childBegin = range.getEnd() , current;
-      llvm::errs() << "start: " << nodeBegin.printToString(helper.manager)
-      << "; end: " << childBegin.printToString(helper.manager) << "\n";
+                     childBegin = range.getEnd() ,
+                     current;
+
+      DEBUG(llvm::errs() << "start: " << nodeBegin.printToString(helper.manager)
+      << "; end: " << childBegin.printToString(helper.manager) << "\n");
 
       auto body = node->getBody();
       if (body) {
         current = getDefaultSourceRange(body).getBegin();
-        llvm::errs() << "body begin: " <<
-        current.printToString(helper.manager) << "\n";
+
+        DEBUG(llvm::errs() << "body begin: " <<
+              current.printToString(helper.manager) << "\n");
+
         if (current < childBegin) {
           childBegin = current;
         }
+      } else {
+        DEBUG(llvm::errs() << "Has no body: " << getNodeName(node) << "\n");
+
+        auto getLocation = hana::sfinae(
+          [](auto *obj) -> decltype(obj->getLocation()) {
+            return obj->getLocation();
+          });
+        childBegin = getLocation(node).value_or(childBegin);
       }
+
       return CharSourceRange::getCharRange(nodeBegin, childBegin);
     }
   };
@@ -108,12 +130,12 @@ namespace {
       CharSourceRange range = getDefaultSourceRange(node);
       range = clang::Lexer::makeFileCharRange(range, helper.manager, LangOptions());
       SourceLocation nodeBegin = range.getBegin(),
-        childBegin = range.getEnd() , current;
-      llvm::errs() << "start: " << nodeBegin.printToString(helper.manager)
-      << "; end: " << childBegin.printToString(helper.manager) << "\n";
+                     childBegin = range.getEnd() , current;
+      DEBUG(llvm::errs() << "start: " << nodeBegin.printToString(helper.manager)
+      << "; end: " << childBegin.printToString(helper.manager) << "\n");
       for (auto child: node->children()) {
         current = getDefaultSourceRange(child).getBegin();
-        llvm::errs() << "child begin: " << current.printToString(helper.manager) << "\n";
+        DEBUG(llvm::errs() << "child begin: " << current.printToString(helper.manager) << "\n");
         if (current < childBegin) {
           childBegin = current;
         }
@@ -127,8 +149,8 @@ namespace {
   decltype((void)node->getSourceRange(), std::string()) {
     constexpr bool hasGetBody = hasGetBodyMethod(node),
                hasGetChildren = hasGetChildrenMethod(node);
-    llvm::errs() << "getSourceRange category: " << getNodeName(node) << "\n";
-    llvm::errs() << "getBody: " << hasGetBody << "; getChildren: " << hasGetChildren << "\n";
+    DEBUG(llvm::errs() << "getSourceRange category: " << getNodeName(node) << "\n");
+    DEBUG(llvm::errs() << "getBody: " << hasGetBody << "; getChildren: " << hasGetChildren << "\n");
     std::string text = clang::Lexer::getSourceText(
       getSourceRange<hasGetBody, hasGetChildren, ExprT>::eval(node, helper),
       helper.manager, LangOptions(), 0);
@@ -140,7 +162,7 @@ namespace {
     helper.out << "(" << getNodeName(node) << "@@ " <<
       getSourceRepr(node, helper) << "), ";
   }
-}
+} // end of anonymous namespace
 
 template <class ExprT>
 void PlainPrinter::VisitImpl(ExprT *node) {

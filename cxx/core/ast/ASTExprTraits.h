@@ -19,7 +19,8 @@ auto hasGetBodyMethod =
   hana::is_valid([](auto *p) -> decltype((void)p->getBody()) {});
 auto hasGetChildrenMethod =
   hana::is_valid([](auto *p) -> decltype((void)p->children()) {});
-
+auto hasGetLocationMethod =
+  hana::is_valid([](auto *p) -> decltype((void)p->getLocation()) {});
 
 #define DEFINE_FOR_ALL(CLASS)                                                  \
 template<>                                                                     \
