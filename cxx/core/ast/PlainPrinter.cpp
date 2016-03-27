@@ -72,77 +72,86 @@ namespace { // start of anonymous namespace
     return CharSourceRange::getTokenRange(node->getSourceRange());
   }
 
-  template <bool hasGetBody, bool hasGetChildren, class ExprT>
-  struct getSourceRange {
-    static inline CharSourceRange eval(ExprT *node, PrinterHelper helper) {
-      return CharSourceRange::getTokenRange(node->getSourceRange());
-    }
-  };
-
   template <class ExprT>
-  struct getSourceRange<true, true, ExprT> {
-    static inline CharSourceRange eval(ExprT *node, PrinterHelper helper) {
-      DEBUG(llvm::errs() << "Has getBody: " << getNodeName(node) << "\n");
+  inline CharSourceRange getSourceRangeWithoutBody(ExprT *node, PrinterHelper helper) {
+    DEBUG(llvm::errs() << "Has getBody: " << getNodeName(node) << "\n");
 
-      CharSourceRange range = getDefaultSourceRange(node);
-      range = clang::Lexer::makeFileCharRange(range, helper.manager, LangOptions());
-      SourceLocation nodeBegin = range.getBegin(),
-                     childBegin = range.getEnd() ,
-                     current;
+    CharSourceRange range = getDefaultSourceRange(node);
+    range = clang::Lexer::makeFileCharRange(range, helper.manager, LangOptions());
+    SourceLocation nodeBegin = range.getBegin(),
+      childBegin = range.getEnd() ,
+      current;
 
-      DEBUG(llvm::errs() << "start: " << nodeBegin.printToString(helper.manager)
-      << "; end: " << childBegin.printToString(helper.manager) << "\n");
+    DEBUG(llvm::errs() << "start: " << nodeBegin.printToString(helper.manager)
+          << "; end: " << childBegin.printToString(helper.manager) << "\n");
 
-      auto body = node->getBody();
-      if (body) {
-        current = getDefaultSourceRange(body).getBegin();
+    auto body = node->getBody();
+    if (body) {
+      current = getDefaultSourceRange(body).getBegin();
 
-        DEBUG(llvm::errs() << "body begin: " <<
-              current.printToString(helper.manager) << "\n");
+      DEBUG(llvm::errs() << "body begin: " <<
+            current.printToString(helper.manager) << "\n");
 
-        if (current < childBegin) {
-          childBegin = current;
-        }
-      } else {
-        DEBUG(llvm::errs() << "Has no body: " << getNodeName(node) << "\n");
-
-        auto getLocation = hana::sfinae(
-          [](auto *obj) -> decltype(obj->getLocation()) {
-            return obj->getLocation();
-          });
-        childBegin = getLocation(node).value_or(childBegin);
+      if (current < childBegin) {
+        childBegin = current;
       }
+    } else {
+      DEBUG(llvm::errs() << "Has no body: " << getNodeName(node) << "\n");
 
-      return CharSourceRange::getCharRange(nodeBegin, childBegin);
+      auto getLocation = hana::sfinae(
+        [](auto *obj) -> decltype(obj->getLocation()) {
+          return obj->getLocation();
+        });
+      childBegin = getLocation(node).value_or(childBegin);
     }
-  };
+
+    return CharSourceRange::getCharRange(nodeBegin, childBegin);
+  }
 
   template <class ExprT>
-  struct getSourceRange<true, false, ExprT> {
-    static inline CharSourceRange eval(ExprT *node, PrinterHelper helper) {
-      return getSourceRange<true, true, ExprT>::eval(node, helper);
-    }
-  };
+  inline CharSourceRange getSourceRangeWithoutChildren(ExprT *node,
+                                                       PrinterHelper helper) {
+    DEBUG(llvm::errs() << "Has children: " << getNodeName(node) << "\n");
 
-  template <class ExprT>
-  struct getSourceRange<false, true, ExprT> {
-    static inline CharSourceRange eval(ExprT *node, PrinterHelper helper) {
-      CharSourceRange range = getDefaultSourceRange(node);
-      range = clang::Lexer::makeFileCharRange(range, helper.manager, LangOptions());
-      SourceLocation nodeBegin = range.getBegin(),
-                     childBegin = range.getEnd() , current;
-      DEBUG(llvm::errs() << "start: " << nodeBegin.printToString(helper.manager)
-      << "; end: " << childBegin.printToString(helper.manager) << "\n");
-      for (auto child: node->children()) {
-        current = getDefaultSourceRange(child).getBegin();
-        DEBUG(llvm::errs() << "child begin: " << current.printToString(helper.manager) << "\n");
-        if (current < childBegin) {
-          childBegin = current;
-        }
+    CharSourceRange range = getDefaultSourceRange(node);
+    range = clang::Lexer::makeFileCharRange(range, helper.manager, LangOptions());
+    SourceLocation nodeBegin = range.getBegin(),
+      childBegin = range.getEnd() , current;
+
+    DEBUG(llvm::errs() << "start: " << nodeBegin.printToString(helper.manager)
+          << "; end: " << childBegin.printToString(helper.manager) << "\n");
+
+    for (auto child: node->children()) {
+      current = getDefaultSourceRange(child).getBegin();
+      DEBUG(llvm::errs() << "child begin: " << current.printToString(helper.manager) << "\n");
+      if (current < childBegin) {
+        childBegin = current;
       }
-      return CharSourceRange::getCharRange(nodeBegin, childBegin);
     }
-  };
+
+    return CharSourceRange::getCharRange(nodeBegin, childBegin);
+  }
+
+  auto getSourceRangeIfHasGetBodyMethod =
+    hana::sfinae([](auto *p, PrinterHelper helper) ->
+    decltype((decltype(getSourceRangeWithoutBody(p, helper)))p->getBody()) {
+      return getSourceRangeWithoutBody(p, helper);
+    });
+
+  auto getSourceRangeIfHasChildrenMethod =
+    hana::sfinae([](auto *p, PrinterHelper helper) ->
+    decltype((decltype(getSourceRangeWithoutChildren(p, helper)))p->children()) {
+      return getSourceRangeWithoutChildren(p, helper);
+    });
+
+
+  template <class ExprT>
+  inline CharSourceRange getSourceRange(ExprT *node, PrinterHelper helper) {
+    return getGenericValue(hana::make_tuple(node, helper),
+                           getDefaultSourceRange(node),
+                           getSourceRangeIfHasGetBodyMethod,
+                           getSourceRangeIfHasChildrenMethod);
+  }
 
   template <class ExprT>
   inline auto getSourceRepr(ExprT *node, PrinterHelper helper) ->
@@ -152,7 +161,7 @@ namespace { // start of anonymous namespace
     DEBUG(llvm::errs() << "getSourceRange category: " << getNodeName(node) << "\n");
     DEBUG(llvm::errs() << "getBody: " << hasGetBody << "; getChildren: " << hasGetChildren << "\n");
     std::string text = clang::Lexer::getSourceText(
-      getSourceRange<hasGetBody, hasGetChildren, ExprT>::eval(node, helper),
+      getSourceRange(node, helper),
       helper.manager, LangOptions(), 0);
     return text;
   }
