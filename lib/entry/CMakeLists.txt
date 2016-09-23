@@ -4,6 +4,7 @@ add_llvm_executable(rooster
 
 target_link_libraries(rooster
   roosterSupport
+  roosterCoreAST
   clangTooling
   )
 
