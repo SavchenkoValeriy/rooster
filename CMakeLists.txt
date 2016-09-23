@@ -1,18 +1,27 @@
-set(LLVM_LINK_COMPONENTS support)
-set(LLVM_USED_LIBS clangTooling clangBasic clangAST)
+cmake_minimum_required(VERSION 3.4.3)
 
-add_subdirectory(cxx)
+project(Rooster
+  ${cmake_3_0_PROJ_VERSION}
+  ${cmake_3_0_LANGUAGES}
+  CXX)
 
-add_clang_executable(rooster
-  cxx/Rooster.cpp
+set(ROOSTER_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/include")
+
+find_package(Clang REQUIRED CONFIG)
+
+# Add path for custom modules
+set(CMAKE_MODULE_PATH
+  ${CMAKE_MODULE_PATH}
+  "${LLVM_CMAKE_DIR}"
   )
-target_link_libraries(rooster
-  roosterCore
-  roosterSupport
-  clangTooling
-  clangBasic
-  clangASTMatchers
-  )
-  
-install(TARGETS rooster
-  RUNTIME DESTINATION bin)
+
+include(AddLLVM)
+
+include_directories(${LLVM_INCLUDE_DIRS})
+include_directories(${CLANG_INCLUDE_DIRS})
+include_directories(${ROOSTER_INCLUDE_DIRS})
+add_definitions(${LLVM_DEFINITIONS})
+add_definitions(${CLANG_DEFINITIONS})
+message("${LLVM_COMPILE_FLAGS}")
+
+add_subdirectory(lib)
