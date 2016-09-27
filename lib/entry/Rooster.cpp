@@ -1,8 +1,8 @@
 #include <support/CommandLineOptions.h>
-#include <support/CommandLineOptions.h>
 #include <fstream>
 #include <core/ast/StatisticsCollector.h>
 #include <core/ast/PlainPrinter.h>
+#include <completion/CompletionTool.h>
 #include "clang/AST/RecursiveASTVisitor.h"
 // Declares clang::SyntaxOnlyAction.
 #include "clang/Frontend/FrontendActions.h"
@@ -120,18 +120,9 @@ static std::fstream *OutputFile;
 //
 int main(int argc, const char **argv) {
   CommandLineOptions OptionsParser(argc, argv, RoosterCategory);
-  StatisticsCollector<PlainPrinterAction> RoosterCollector;
-  RoosterCollector.init(OptionsParser.getOutput());
-  RoosterCollector.collect(OptionsParser.getCompilations(),
-                           OptionsParser.getSourcePathList());
-//  std::fstream output;
-//  output.open(OptionsParser.getOutput(), std::fstream::out);
-//  OutputFile = &output;
-//  ClangTool Tool(OptionsParser.getCompilations(),
-//                 OptionsParser.getSourcePathList());
-//  RoosterActionFactory Factory(OptionsParser);
-//  int result = Tool.run(&Factory);
-//  //llvm::outs() << collector;
-//  output.close();
+  CompletionTool Rooster;
+  Rooster.init(OptionsParser.getCompilations(),
+               OptionsParser.getSourcePathList());
+  Rooster.completeAt("/space/vsavchenko/source/rooster/lib/entry/Rooster.cpp", 126, 11);
   return 0;
 }

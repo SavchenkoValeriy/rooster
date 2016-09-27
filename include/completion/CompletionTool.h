@@ -9,7 +9,11 @@ class CompletionTool {
 public:
   void init(clang::tooling::CompilationDatabase &database,
             std::vector<std::string> sources);
-  void completeAt(std::string &file, unsigned line, unsigned column);
+  void completeAt(const std::string &file, unsigned line, unsigned column);
+  CompletionTool();
+  CompletionTool(const CompletionTool&) = delete;
+  CompletionTool(const CompletionTool&&) = delete;
+  ~CompletionTool();
 private:
   std::unique_ptr<ASTCollector> collector;
 };
