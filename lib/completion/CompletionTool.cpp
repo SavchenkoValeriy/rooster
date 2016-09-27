@@ -12,11 +12,14 @@ public:
   bool runInvocation(CompilerInvocation *Invocation, FileManager *Files,
                      std::shared_ptr<PCHContainerOperations> PCHContainerOps,
                      DiagnosticConsumer *DiagConsumer) override {
+    auto diagnostics = CompilerInstance::createDiagnostics(
+        &Invocation->getDiagnosticOpts(), DiagConsumer,
+        /*ShouldOwnClient=*/false);
+    if (!printDiagnostics)
+      diagnostics->setClient(new IgnoringDiagConsumer());
     std::unique_ptr<ASTUnit> AST = ASTUnit::LoadFromCompilerInvocation(
         Invocation, std::move(PCHContainerOps),
-        CompilerInstance::createDiagnostics(&Invocation->getDiagnosticOpts(),
-                                            DiagConsumer,
-                                            /*ShouldOwnClient=*/false),
+        diagnostics,
         Files);
     if (!AST) return false;
     llvm::errs() << "Processed: " << AST->getOriginalSourceFileName() << "\n";
@@ -28,18 +31,25 @@ public:
   ASTUnit *getASTUnit(const llvm::StringRef &file) {
     return ASTs[file].get();
   }
+
+  void setPrintDiagnostics(bool doPrint) {
+    printDiagnostics = doPrint;
+  }
+
+  bool getPrintDiagnostics() {
+    return printDiagnostics;
+  }
+
+  ASTCollector() : ASTs(), printDiagnostics(false) {}
 private:
   llvm::DenseMap<llvm::StringRef, std::unique_ptr<ASTUnit> > ASTs;
+  bool printDiagnostics;
 };
-
-void CompletionTool::init(clang::tooling::CompilationDatabase &database,
-                          std::vector<std::string> sources) {
-  ClangTool Tool(database, sources);
-  Tool.run(collector.get());
-}
 
 void CompletionTool::completeAt(const std::string &file,
                                 unsigned int line, unsigned int column) {
+  ClangTool Tool(database, {file});
+  Tool.run(collector.get());
   ASTUnit *AST = collector->getASTUnit(file);
   CodeCompleteOptions options;
   options.IncludeBriefComments = 1;
@@ -53,5 +63,15 @@ void CompletionTool::completeAt(const std::string &file,
   AST->CodeComplete(file, line, column, {}, options.IncludeMacros, options.IncludeCodePatterns, options.IncludeBriefComments, completionPrinter, PCHContainerOps, AST->getDiagnostics(), const_cast<LangOptions&>(AST->getLangOpts()), AST->getSourceManager(), AST->getFileManager(), StoredDiagnostics, OwnedBuffers);
 }
 
-CompletionTool::CompletionTool() : collector(llvm::make_unique<ASTCollector>()) {}
+void CompletionTool::setPrintDiagnostics(bool doPrint) {
+  collector->setPrintDiagnostics(doPrint);
+}
+
+bool CompletionTool::getPrintDiagnostics() {
+  return collector->getPrintDiagnostics();
+}
+
+CompletionTool::CompletionTool(CompilationDatabase &&database,
+                               std::vector<std::string> &&sources) :
+  collector(llvm::make_unique<ASTCollector>()), database(database), sources(sources) { }
 CompletionTool::~CompletionTool() = default;

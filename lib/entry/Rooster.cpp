@@ -120,9 +120,9 @@ static std::fstream *OutputFile;
 //
 int main(int argc, const char **argv) {
   CommandLineOptions OptionsParser(argc, argv, RoosterCategory);
-  CompletionTool Rooster;
-  Rooster.init(OptionsParser.getCompilations(),
-               OptionsParser.getSourcePathList());
-  Rooster.completeAt("/space/vsavchenko/source/rooster/lib/entry/Rooster.cpp", 126, 11);
+  CompletionTool Rooster(std::move(OptionsParser.getCompilations()),
+                         OptionsParser.getSourcePathList());
+  Rooster.setPrintDiagnostics(OptionsParser.isDiagnosticOn());
+  Rooster.completeAt("/space/vsavchenko/source/rooster/lib/entry/Rooster.cpp", 124, 40);
   return 0;
 }
