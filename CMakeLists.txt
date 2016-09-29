@@ -22,6 +22,5 @@ include_directories(${CLANG_INCLUDE_DIRS})
 include_directories(${ROOSTER_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
 add_definitions(${CLANG_DEFINITIONS})
-message("${LLVM_COMPILE_FLAGS}")
 
 add_subdirectory(lib)

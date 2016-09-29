@@ -17,6 +17,7 @@ public:
         /*ShouldOwnClient=*/false);
     if (!printDiagnostics)
       diagnostics->setClient(new IgnoringDiagConsumer());
+    Invocation->getFrontendOpts().SkipFunctionBodies = 1;
     std::unique_ptr<ASTUnit> AST = ASTUnit::LoadFromCompilerInvocation(
         Invocation, std::move(PCHContainerOps),
         diagnostics,
@@ -48,9 +49,12 @@ private:
 
 void CompletionTool::completeAt(const std::string &file,
                                 unsigned int line, unsigned int column) {
-  ClangTool Tool(database, {file});
-  Tool.run(collector.get());
   ASTUnit *AST = collector->getASTUnit(file);
+  if (!AST) {
+    ClangTool Tool(database, {file});
+    Tool.run(collector.get());
+  }
+  AST = collector->getASTUnit(file);
   CodeCompleteOptions options;
   options.IncludeBriefComments = 1;
   options.IncludeCodePatterns  = 1;
