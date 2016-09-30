@@ -1,5 +1,6 @@
 add_llvm_library(roosterCompletion
-  CompletionTool.cpp)
+  CompletionTool.cpp
+  CompletionPrinter.cpp)
 
 target_link_libraries(roosterCompletion
   clangTooling
