@@ -38,3 +38,5 @@ build/*
 *.exe
 *.out
 *.app
+/compile_commands.json
+/.dir-locals.el
