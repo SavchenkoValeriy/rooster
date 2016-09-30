@@ -1,29 +1,26 @@
 #include <support/CommandLineOptions.h>
-#include <fstream>
 #include <completion/CompletionTool.h>
 
-using namespace clang::tooling;
 using namespace llvm;
-using namespace clang;
 
-// Apply a custom category to all command-line options so that they are the
-// only ones displayed.
-static llvm::cl::OptionCategory RoosterCategory("rooster options");
+static cl::OptionCategory RoosterCompletionCategory("Rooster completion tool options");
 
-// A help message for this specific tool can be added afterwards.
+static cl::opt<bool> interactive("i", cl::desc("Run in interactive mode"),
+                                 cl::cat(RoosterCompletionCategory));
+static cl::opt<std::string> fileToComplete("f", cl::desc("File to run completion for"),
+                                         cl::cat(RoosterCompletionCategory));
+static cl::opt<unsigned> line("l", cl::desc("Line of completion"),
+                              cl::cat(RoosterCompletionCategory));
+static cl::opt<unsigned> column("c", cl::desc("Column of completion"),
+                                cl::cat(RoosterCompletionCategory));
+
 static cl::extrahelp MoreHelp("\nMore help text...\n");
 
-static std::fstream *OutputFile;
-
 int main(int argc, const char **argv) {
-  CommandLineOptions OptionsParser(argc, argv, RoosterCategory);
+  CommandLineOptions OptionsParser(argc, argv, RoosterCompletionCategory);
   CompletionTool Rooster(std::move(OptionsParser.getCompilations()),
                          OptionsParser.getSourcePathList());
   Rooster.setPrintDiagnostics(OptionsParser.isDiagnosticOn());
-  Rooster.completeAt("/space/vsavchenko/source/rooster/lib/entry/Rooster.cpp", 21, 40);
-  Rooster.completeAt("/space/vsavchenko/source/rooster/lib/entry/Rooster.cpp", 21, 40);
-  Rooster.completeAt("/space/vsavchenko/source/rooster/lib/entry/Rooster.cpp", 21, 40);
-  Rooster.completeAt("/space/vsavchenko/source/rooster/lib/entry/Rooster.cpp", 21, 40);
-  Rooster.completeAt("/space/vsavchenko/source/rooster/lib/entry/Rooster.cpp", 21, 40);
+  Rooster.completeAt(fileToComplete, line, column);
   return 0;
 }
