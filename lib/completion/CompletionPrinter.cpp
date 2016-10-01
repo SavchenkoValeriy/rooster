@@ -43,9 +43,14 @@ const StringRef getName(CodeCompletionResult Result) {
   llvm_unreachable("Unknown code completion result Kind.");
 }
 
+bool isCompletionAvailable(CodeCompletionResult Result) {
+  return Result.Availability == CXAvailability_Available ||
+    Result.Availability == CXAvailability_Deprecated;
+}
+
 bool CompletionPrinter::isResultFilteredOut(StringRef Filter,
                                             CodeCompletionResult Result) {
-  return getName(Result).startswith(Filter);
+  return !isCompletionAvailable(Result) && getName(Result).startswith(Filter);
 }
 
 void
@@ -58,10 +63,11 @@ CompletionPrinter::ProcessCodeCompleteResults(Sema &SemaRef,
   StringRef Filter = SemaRef.getPreprocessor().getCodeCompletionFilter();
 
   // Print the results.
+  OS << "(\n";
   for (unsigned I = 0; I != NumResults; ++I) {
-    if(!Filter.empty() && isResultFilteredOut(Filter, Results[I]))
+    if(isResultFilteredOut(Filter, Results[I]))
       continue;
-    OS << "COMPLETION: ";
+    OS << "(";
     switch (Results[I].Kind) {
     case CodeCompletionResult::RK_Declaration:
       OS << *Results[I].Declaration;
@@ -77,7 +83,6 @@ CompletionPrinter::ProcessCodeCompleteResults(Sema &SemaRef,
           OS << " : " << BriefComment;
       }
 
-      OS << '\n';
       break;
 
     case CodeCompletionResult::RK_Keyword:
@@ -93,7 +98,6 @@ CompletionPrinter::ProcessCodeCompleteResults(Sema &SemaRef,
                                                     includeBriefComments())) {
         OS << " : " << CCS->getAsString();
       }
-      OS << '\n';
       break;
     }
 
@@ -103,7 +107,9 @@ CompletionPrinter::ProcessCodeCompleteResults(Sema &SemaRef,
       break;
     }
     }
+    OS << ")\n";
   }
+  OS << ")\n";
 }
 
 static std::string getOverloadAsString(const CodeCompletionString &CCS) {

@@ -1,4 +1,5 @@
 #include <completion/CompletionTool.h>
+#include <completion/CompletionPrinter.h>
 #include <clang/Frontend/CompilerInstance.h>
 #include <clang/Frontend/CompilerInvocation.h>
 #include <clang/Sema/CodeCompleteConsumer.h>
@@ -63,7 +64,7 @@ void CompletionTool::completeAt(const std::string &file,
   llvm::SmallVector<StoredDiagnostic, 0> StoredDiagnostics{};
   auto PCHContainerOps = std::make_shared<PCHContainerOperations>();
   llvm::SmallVector<const llvm::MemoryBuffer *, 0> OwnedBuffers{};
-  PrintingCodeCompleteConsumer completionPrinter(options, llvm::errs());
+  CompletionPrinter completionPrinter(options, llvm::errs());
   AST->CodeComplete(file, line, column, {}, options.IncludeMacros, options.IncludeCodePatterns, options.IncludeBriefComments, completionPrinter, PCHContainerOps, AST->getDiagnostics(), const_cast<LangOptions&>(AST->getLangOpts()), AST->getSourceManager(), AST->getFileManager(), StoredDiagnostics, OwnedBuffers);
 }
 
