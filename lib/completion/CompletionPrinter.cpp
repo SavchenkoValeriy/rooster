@@ -1,4 +1,7 @@
 #include <completion/CompletionPrinter.h>
+#include <boost/lexical_cast.hpp>
+#include <boost/range/algorithm/transform.hpp>
+#include <boost/algorithm/string/join.hpp>
 #include <clang/Sema/Sema.h>
 
 using namespace llvm;
@@ -53,6 +56,68 @@ bool CompletionPrinter::isResultFilteredOut(StringRef Filter,
   return !isCompletionAvailable(Result) && getName(Result).startswith(Filter);
 }
 
+class CompletionCandidate {
+public:
+  void setTypedText(const char *value) { addStringValue(TypedText, value); }
+  void setResultType(const char *value) { addStringValue(ResultType, value); }
+  void setBriefComment(const char *value) { addStringValue(BriefComment, value); }
+  void addToSignature(const char *value) { addStringValue(Signature, value); }
+  void setPostCompletion(const char* value) { addStringValue(PostCompletion, value); }
+  void setPriority(unsigned value) { Priority = value; }
+  void setAnnotation(unsigned value) { Annotation = value; }
+  void addPlaceholderRange(unsigned begin, unsigned end) {
+    PlaceholderRanges.push_back(begin);
+    PlaceholderRanges.push_back(end);
+  }
+
+  const std::string &getTypedText() { return TypedText; }
+  const std::string &getResultType() { return ResultType; }
+  const std::string &getBriefComment() { return BriefComment; }
+  const std::string &getSignature() { return Signature; }
+  const std::string &getPostCompletion() { return PostCompletion; }
+  unsigned getPriority() { return Priority; }
+  unsigned getAnnotation() { return Annotation; }
+  const llvm::SmallVector<unsigned, 4> &getPlaceholderRanges() { return PlaceholderRanges;}
+private:
+  void addStringValue(std::string &dst, const char *src) {
+    if (src) dst += src;
+  }
+
+  std::string TypedText      = "",
+              ResultType     = "",
+              BriefComment   = "",
+              Signature      = "",
+              PostCompletion = "";
+  unsigned Priority = 0, Annotation = 0;
+  llvm::SmallVector<unsigned, 4> PlaceholderRanges{};
+};
+
+void print(llvm::raw_ostream &OS, const std::string &value) {
+  OS << "\"" << value << "\"" << " ";
+}
+
+void print(llvm::raw_ostream &OS, unsigned value) {
+  OS << value << " ";
+}
+
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, CompletionCandidate &candidate) {
+  print(OS, candidate.getTypedText());
+  print(OS, candidate.getPriority());
+  print(OS, candidate.getResultType());
+  print(OS, candidate.getBriefComment());
+  print(OS, candidate.getSignature());
+  print(OS, candidate.getTypedText().size());
+  OS << "(";
+  print(OS, candidate.getPostCompletion());
+
+  auto placeholders =
+    boost::range::transform(candidate.getPlaceholderRanges(),
+                                       [](auto x) { return boost::lexical_cast<std::string>(x); });
+  OS << boost::algorithm::join(placeholders, " ");
+  OS << ")";
+  return OS;
+}
+
 void
 CompletionPrinter::ProcessCodeCompleteResults(Sema &SemaRef,
                                               CodeCompletionContext Context,
@@ -68,9 +133,9 @@ CompletionPrinter::ProcessCodeCompleteResults(Sema &SemaRef,
     if(isResultFilteredOut(Filter, Results[I]))
       continue;
     OS << "(";
+    CompletionCandidate candidate;
     switch (Results[I].Kind) {
     case CodeCompletionResult::RK_Declaration:
-      OS << *Results[I].Declaration;
       if (Results[I].Hidden)
         OS << " (Hidden)";
       if (CodeCompletionString *CCS
@@ -78,15 +143,28 @@ CompletionPrinter::ProcessCodeCompleteResults(Sema &SemaRef,
                                                     getAllocator(),
                                                     CCTUInfo,
                                                     includeBriefComments())) {
-        OS << " : " << CCS->getAsString();
-        if (const char *BriefComment = CCS->getBriefComment())
-          OS << " : " << BriefComment;
+        candidate.setTypedText(CCS->getTypedText());
+        candidate.setPriority(CCS->getPriority());
+        candidate.setBriefComment(CCS->getBriefComment());
+        for (auto chunk : *CCS) {
+          switch (chunk.Kind) {
+          case CodeCompletionString::CK_ResultType:
+            candidate.setResultType(chunk.Text);
+            break;
+          case CodeCompletionString::CK_Optional:
+            break;
+          case CodeCompletionString::CK_CurrentParameter:
+            candidate.addToSignature(chunk.Text);
+          default:
+            candidate.addToSignature(chunk.Text);
+          }
+        }
       }
-
+      OS << candidate;
       break;
 
     case CodeCompletionResult::RK_Keyword:
-      OS << Results[I].Keyword << '\n';
+      OS << Results[I].Keyword;
       break;
 
     case CodeCompletionResult::RK_Macro: {
@@ -103,7 +181,7 @@ CompletionPrinter::ProcessCodeCompleteResults(Sema &SemaRef,
 
     case CodeCompletionResult::RK_Pattern: {
       OS << "Pattern : "
-         << Results[I].Pattern->getAsString() << '\n';
+         << Results[I].Pattern->getAsString();
       break;
     }
     }
