@@ -1,4 +1,5 @@
 #include <completion/CompletionPrinter.h>
+#include <support/StringExtras.h>
 #include <boost/lexical_cast.hpp>
 #include <boost/range/algorithm/transform.hpp>
 #include <boost/algorithm/string/join.hpp>
@@ -58,38 +59,58 @@ bool CompletionPrinter::isResultFilteredOut(StringRef Filter,
 
 class CompletionCandidate {
 public:
+  template <class T>
+  using PlaceholdersTy = llvm::SmallVector<T, 4>;
+  struct Postcompletion {
+    std::string PlaceholdersText;
+    PlaceholdersTy<unsigned> Positions;
+  };
   void setTypedText(const char *value) { addStringValue(TypedText, value); }
   void setResultType(const char *value) { addStringValue(ResultType, value); }
   void setBriefComment(const char *value) { addStringValue(BriefComment, value); }
-  void addToSignature(const char *value) { addStringValue(Signature, value); }
-  void setPostCompletion(const char* value) { addStringValue(PostCompletion, value); }
+  void addArgumentToSignature(const char *value) {
+    auto sizeBefore = PostcompletionInfo.PlaceholdersText.size();
+    addToSignature(value);
+    auto sizeAfter = PostcompletionInfo.PlaceholdersText.size();
+    if (sizeAfter != sizeBefore)
+      addPlaceholderRange(sizeBefore, sizeAfter);
+  }
+  void addTypedTextToSignature(const char *value) {
+    addToSignature(value);
+  }
+  void addToPostcompletion(const char* value) {
+    addStringValue(PostcompletionInfo.PlaceholdersText, value);
+  }
   void setPriority(unsigned value) { Priority = value; }
-  void setAnnotation(unsigned value) { Annotation = value; }
   void addPlaceholderRange(unsigned begin, unsigned end) {
-    PlaceholderRanges.push_back(begin);
-    PlaceholderRanges.push_back(end);
+    PostcompletionInfo.Positions.push_back(begin);
+    PostcompletionInfo.Positions.push_back(end);
   }
 
   const std::string &getTypedText() { return TypedText; }
   const std::string &getResultType() { return ResultType; }
   const std::string &getBriefComment() { return BriefComment; }
   const std::string &getSignature() { return Signature; }
-  const std::string &getPostCompletion() { return PostCompletion; }
+  const Postcompletion &getPostcompletion() { return PostcompletionInfo; }
   unsigned getPriority() { return Priority; }
-  unsigned getAnnotation() { return Annotation; }
-  const llvm::SmallVector<unsigned, 4> &getPlaceholderRanges() { return PlaceholderRanges;}
+  unsigned getAnnotation() { return TypedText.size(); }
 private:
+  void addToSignature(const char *value) {
+    addStringValue(Signature, value);
+    if (TypedTextSet) addToPostcompletion(value);
+    TypedTextSet = true;
+  }
   void addStringValue(std::string &dst, const char *src) {
     if (src) dst += src;
   }
 
+  bool TypedTextSet = false;
   std::string TypedText      = "",
               ResultType     = "",
               BriefComment   = "",
-              Signature      = "",
-              PostCompletion = "";
+              Signature      = "";
   unsigned Priority = 0, Annotation = 0;
-  llvm::SmallVector<unsigned, 4> PlaceholderRanges{};
+  Postcompletion PostcompletionInfo;
 };
 
 void print(llvm::raw_ostream &OS, const std::string &value) {
@@ -100,21 +121,43 @@ void print(llvm::raw_ostream &OS, unsigned value) {
   OS << value << " ";
 }
 
-llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, CompletionCandidate &candidate) {
-  print(OS, candidate.getTypedText());
-  print(OS, candidate.getPriority());
-  print(OS, candidate.getResultType());
-  print(OS, candidate.getBriefComment());
-  print(OS, candidate.getSignature());
-  print(OS, candidate.getTypedText().size());
-  OS << "(";
-  print(OS, candidate.getPostCompletion());
+namespace print {
+  auto adapt(const std::string &value) {
+    return wrap(value);
+  }
 
-  auto placeholders =
-    boost::range::transform(candidate.getPlaceholderRanges(),
-                                       [](auto x) { return boost::lexical_cast<std::string>(x); });
-  OS << boost::algorithm::join(placeholders, " ");
-  OS << ")";
+  auto adapt(unsigned value) {
+    return boost::lexical_cast<std::string>(value);
+  }
+
+  template <class Ty>
+  auto adapt(const CompletionCandidate::PlaceholdersTy<Ty> &value) {
+      CompletionCandidate::PlaceholdersTy<std::string> adaptedValue;
+      boost::range::transform(value, std::back_inserter(adaptedValue),
+                              [](auto x) { return adapt(x); });
+      return boost::algorithm::join(adaptedValue, " ");
+  }
+
+  void print(llvm::raw_ostream &OS, const CompletionCandidate::Postcompletion &arg) {
+    OS << "(" << adapt(arg.PlaceholdersText);
+    auto positions = adapt(arg.Positions);
+    OS << (!positions.empty() ? " " : "") << positions << ")";
+  }
+
+  template <class ProcessedArgTy, class ...ArgsTy>
+  void print(llvm::raw_ostream &OS, ProcessedArgTy arg, ArgsTy... args) {
+    OS << adapt(arg) << " ";
+    print(OS, args...);
+  }
+}
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, CompletionCandidate &candidate) {
+  print::print(OS, candidate.getTypedText(),
+               candidate.getPriority(),
+               candidate.getResultType(),
+               candidate.getBriefComment(),
+               candidate.getSignature(),
+               candidate.getAnnotation(),
+               candidate.getPostcompletion());
   return OS;
 }
 
@@ -153,10 +196,11 @@ CompletionPrinter::ProcessCodeCompleteResults(Sema &SemaRef,
             break;
           case CodeCompletionString::CK_Optional:
             break;
-          case CodeCompletionString::CK_CurrentParameter:
-            candidate.addToSignature(chunk.Text);
+          case CodeCompletionString::CK_Placeholder:
+            candidate.addArgumentToSignature(chunk.Text);
+            break;
           default:
-            candidate.addToSignature(chunk.Text);
+            candidate.addTypedTextToSignature(chunk.Text);
           }
         }
       }
