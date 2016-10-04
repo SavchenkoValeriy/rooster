@@ -11,7 +11,10 @@
 #define ROOSTER_COMMANDLINEOPTIONS_H
 
 #include "clang/Tooling/CompilationDatabase.h"
-#include "llvm/Support/CommandLine.h"
+
+namespace llvm { namespace cl {
+    class OptionCategory;
+}}
 
 class CommandLineOptions {
 public:

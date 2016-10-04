@@ -1,5 +1,6 @@
 #include <support/CommandLineOptions.h>
 #include <clang/Tooling/ArgumentsAdjusters.h>
+#include <llvm/Support/CommandLine.h>
 #include <llvm/ADT/STLExtras.h>
 
 using namespace clang::tooling;

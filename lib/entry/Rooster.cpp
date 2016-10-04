@@ -1,5 +1,6 @@
 #include <support/CommandLineOptions.h>
 #include <completion/CompletionTool.h>
+#include <llvm/Support/CommandLine.h>
 
 using namespace llvm;
 
