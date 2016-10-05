@@ -38,7 +38,10 @@ namespace interactive {
 
     template <class T, std::size_t position>
     static auto parseImpl(CommandArgsContainer &args) {
-      return parse<T>(args.at(position));
+      static_assert(std::is_reference<T>::value == 0,
+                    "Argument shouldn't be a reference!");
+      using ParsedTy = typename std::remove_cv<T>::type;
+      return parse<ParsedTy>(args.at(position));
     }
 
     CallbackMap callbacks;

@@ -37,9 +37,9 @@ int main(int argc, const char **argv) {
   Rooster.setPrintDiagnostics(OptionsParser.isDiagnosticOn());
   if (isInteractive) {
     InteractiveMode<RoosterServerCommands> server;
-    CallbackTy<void, const std::string &, unsigned, unsigned> completionCallback;
+    CallbackTy<void, std::string, unsigned, unsigned> completionCallback;
     completionCallback =
-      [&Rooster](const std::string &file, unsigned line, unsigned column) {
+      [&Rooster](std::string file, unsigned line, unsigned column) {
       return Rooster.completeAt(file, line, column);
     };
     server.registerCallback(RoosterServerCommands::Command::complete,
