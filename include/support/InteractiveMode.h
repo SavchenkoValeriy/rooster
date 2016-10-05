@@ -1,19 +1,21 @@
 #ifndef ROOSTER_INTERACTIVEMODE_H
 #define ROOSTER_INTERACTIVEMODE_H
 
-#include <llvm/ADT/DenseMap.h>
+#include <support/InputReader.h>
 #include <functional>
 #include <map>
 
+// @brief namespace interactive contains features and functions related
+// to a generic mode to work interactively
 namespace interactive {
+  // @brief function to parse
   template <class ParsedType>
   ParsedType parse(const std::string &);
 
   template <class ReturnTy, class ...ArgsTy>
   using CallbackTy = std::function<ReturnTy (ArgsTy...)>;
 
-
-  template <class CommandTy>
+  template <class CommandTy, class InputReaderTy>
   class InteractiveMode {
   public:
     template <class CallbackReturnTy, class ...CallbackArgsTy>
@@ -23,7 +25,6 @@ namespace interactive {
     }
 
   private:
-    using CommandArgsContainer = std::vector<std::string>;
     using CallbackMap = std::map<typename CommandTy::Command,
                                  CallbackTy<void, CommandArgsContainer &> >;
 
