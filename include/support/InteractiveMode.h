@@ -25,20 +25,21 @@ namespace interactive {
     }
 
   private:
+    using CommandArgs = typename InputReaderTy::CommandArgsContainer;
     using CallbackMap = std::map<typename CommandTy::Command,
-                                 CallbackTy<void, CommandArgsContainer &> >;
+                                 CallbackTy<void, CommandArgs &> >;
 
     template <class CallbackReturnTy, class ...CallbackArgsTy, std::size_t ...Idx>
     void registerCallbackImpl(typename CommandTy::Command command,
                               CallbackTy<CallbackReturnTy, CallbackArgsTy...> &callback,
                               std::index_sequence<Idx...> sequence) {
-      callbacks[command] = [callback](CommandArgsContainer &args) {
+      callbacks[command] = [callback](CommandArgs &args) {
         callback(parseImpl<CallbackArgsTy, Idx>(args)...);
       };
     }
 
     template <class T, std::size_t position>
-    static auto parseImpl(CommandArgsContainer &args) {
+    static auto parseImpl(CommandArgs &args) {
       static_assert(std::is_reference<T>::value == 0,
                     "Argument shouldn't be a reference!");
       using ParsedTy = typename std::remove_cv<T>::type;

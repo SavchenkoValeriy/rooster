@@ -5,10 +5,9 @@
 #include <string>
 
 namespace interactive {
-  using CommandArgsContainer = std::vector<std::string>;
-
   template <class T>
   struct InputReader {
+    using CommandArgsContainer = std::vector<std::string>;
     static CommandArgsContainer getArguments(const std::string &);
     static std::string getCommand(const std::string &);
   };

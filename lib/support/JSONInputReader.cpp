@@ -1,5 +1,4 @@
 #include <support/JSONInputReader.h>
-#include <nlohmann/json.hpp>
 #include <boost/lexical_cast.hpp>
 #include <string>
 
@@ -31,19 +30,12 @@ namespace {
 }
 
 namespace interactive {
-  template <>
-  CommandArgsContainer JSONInputReader::getArguments(const std::string &userInput) {
+  JSONInputReader::CommandArgsContainer JSONInputReader::getArguments(const std::string &userInput) {
     auto jsonCommand = readJSON(userInput);
     if (jsonCommand.size() == 0)
       return CommandArgsContainer();
-    CommandArgsContainer result;
-    std::transform(jsonCommand.begin() + 1, jsonCommand.end(),
-                   std::back_inserter(result), [](auto x) {
-                     return boost::lexical_cast<std::string>(x);
-                   });
-    return result;
+    return {jsonCommand.begin() + 1, jsonCommand.end()};
   }
-  template <>
   std::string JSONInputReader::getCommand(const std::string &userInput) {
     auto jsonCommand = readJSON(userInput);
     if (jsonCommand.size() == 0)
