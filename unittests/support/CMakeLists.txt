@@ -1,0 +1,4 @@
+add_executable(InteractiveModeTests InteractiveModeTest.cpp)
+target_link_libraries(InteractiveModeTests ${GTEST_BOTH_LIBRARIES})
+target_link_libraries(InteractiveModeTests ${CMAKE_THREAD_LIBS_INIT})
+add_test(SupportTests InteractiveModeTests)

@@ -1,5 +1,4 @@
 #include <support/JSONInputReader.h>
-#include <boost/lexical_cast.hpp>
 #include <string>
 
 using namespace nlohmann;

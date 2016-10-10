@@ -23,4 +23,10 @@ include_directories(${ROOSTER_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
 add_definitions(${CLANG_DEFINITIONS})
 
+enable_testing()
+find_package(GTest REQUIRED)
+find_package(Threads REQUIRED)
+include_directories(${GTEST_INCLUDE_DIRS})
+
 add_subdirectory(lib)
+add_subdirectory(unittests)
