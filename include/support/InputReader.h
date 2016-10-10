@@ -9,8 +9,8 @@ namespace interactive {
 
   template <class T>
   struct InputReader {
-    static CommandArgsContainer getArguments();
-    static std::string getCommand();
+    static CommandArgsContainer getArguments(const std::string &);
+    static std::string getCommand(const std::string &);
   };
 }
 
