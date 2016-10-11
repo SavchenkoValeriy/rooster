@@ -1,4 +1,7 @@
-add_executable(InteractiveModeTests InteractiveModeTest.cpp)
-target_link_libraries(InteractiveModeTests ${GTEST_BOTH_LIBRARIES})
-target_link_libraries(InteractiveModeTests ${CMAKE_THREAD_LIBS_INIT})
-add_test(SupportTests InteractiveModeTests)
+set(SupportSources
+  InteractiveModeTest.cpp
+  JSONInputReaderTest.cpp
+  )
+
+add_rooster_unittest(SupportTests ${SupportSources})
+target_link_libraries(SupportTests roosterSupport)
