@@ -46,3 +46,9 @@ TEST(JSONInputReaderTests, TestWithStrings) {
   auto args = JSONInputReader::getArguments(request);
   compare(args, hana::make_tuple("la", "la-la", "la-la-la"));
 }
+
+TEST(JSONInputReaderTests, TestMixed) {
+  auto request = "[\"born\", 16, \"March\", 1989]";
+  auto args = JSONInputReader::getArguments(request);
+  compare(args, hana::make_tuple(16, "March", 1989));
+}
