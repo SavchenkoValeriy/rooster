@@ -5,7 +5,7 @@
 #include <nlohmann/json.hpp>
 
 namespace interactive {
-  class JSONInputReader : public InputReader<JSONInputReader> {
+  class JSONInputReader : public InputReader {
   public:
     using CommandArgsContainer = nlohmann::json;
     static CommandArgsContainer getArguments(const std::string &);

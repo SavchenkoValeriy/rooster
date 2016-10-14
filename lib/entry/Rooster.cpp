@@ -1,6 +1,7 @@
 #include <support/CommandLineOptions.h>
 #include <support/InteractiveMode.h>
 #include <support/JSONInputReader.h>
+#include <support/ConsoleInputProvider.h>
 #include <completion/CompletionTool.h>
 #include <llvm/Support/CommandLine.h>
 //#include <functional>
@@ -31,20 +32,24 @@ struct RoosterServerCommands {
   Command value;
 };
 
+using InteractiveServer = InteractiveMode<JSONInputReader,
+                                          ConsoleInputProvider>;
+
 int main(int argc, const char **argv) {
   CommandLineOptions OptionsParser(argc, argv, RoosterCompletionCategory);
   CompletionTool Rooster(std::move(OptionsParser.getCompilations()),
                          OptionsParser.getSourcePathList());
   Rooster.setPrintDiagnostics(OptionsParser.isDiagnosticOn());
   if (isInteractive) {
-    InteractiveMode<RoosterServerCommands, JSONInputReader> server;
+    InteractiveServer server;
     CallbackTy<void, std::string, unsigned, unsigned> completionCallback;
     completionCallback =
       [&Rooster](std::string file, unsigned line, unsigned column) {
       return Rooster.completeAt(file, line, column);
     };
-    server.registerCallback(RoosterServerCommands::Command::complete,
+    server.registerCallback("complete",
                             completionCallback);
+    server.run();
   } else {
     Rooster.completeAt(fileToComplete, line, column);
   }

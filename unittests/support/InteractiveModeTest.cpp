@@ -2,7 +2,7 @@
 #include <gtest/gtest.h>
 
 namespace interactive {
-  class InputReaderMock : public InputReader<InputReaderMock> {
+  class InputReaderMock : public InputReader {
     static CommandArgsContainer getArguments(const std::string &);
     static std::string getCommand(const std::string &);
   };

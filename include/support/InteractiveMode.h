@@ -2,10 +2,11 @@
 #define ROOSTER_INTERACTIVEMODE_H
 
 #include <support/InputReader.h>
+#include <llvm/Support/raw_ostream.h>
 #include <functional>
 #include <map>
 
-// @brief namespace interactive contains features and functions related
+// @brief @namespace interactive contains features and functions related
 // to a generic mode to work interactively
 namespace interactive {
   // @brief function to parse
@@ -15,22 +16,36 @@ namespace interactive {
   template <class ReturnTy, class ...ArgsTy>
   using CallbackTy = std::function<ReturnTy (ArgsTy...)>;
 
-  template <class CommandTy, class InputReaderTy>
+  template <class InputReaderTy,
+            class InputProviderTy>
   class InteractiveMode {
   public:
+    using Command = std::string;
     template <class CallbackReturnTy, class ...CallbackArgsTy>
-    void registerCallback(typename CommandTy::Command command,
+    void registerCallback(const Command &command,
                           CallbackTy<CallbackReturnTy, CallbackArgsTy...> &callback) {
       registerCallbackImpl(command, callback, std::index_sequence_for<CallbackArgsTy...>{});
     }
 
+    void run() {
+      while(true) {
+        auto input = InputProviderTy::read();
+        llvm::errs() << "Received input: " << input << "\n";
+        auto command = InputReaderTy::getCommand(input);
+        llvm::errs() << "Command: " << command << "\n";
+        if (command == exit)
+          return;
+        auto arguments = InputReaderTy::getArguments(input);
+        callbacks[command](arguments);
+      }
+    }
+
   private:
     using CommandArgs = typename InputReaderTy::CommandArgsContainer;
-    using CallbackMap = std::map<typename CommandTy::Command,
-                                 CallbackTy<void, CommandArgs &> >;
+    using CallbackMap = std::map<Command, CallbackTy<void, CommandArgs &> >;
 
     template <class CallbackReturnTy, class ...CallbackArgsTy, std::size_t ...Idx>
-    void registerCallbackImpl(typename CommandTy::Command command,
+    void registerCallbackImpl(const Command &command,
                               CallbackTy<CallbackReturnTy, CallbackArgsTy...> &callback,
                               std::index_sequence<Idx...> sequence) {
       callbacks[command] = [callback](CommandArgs &args) {
@@ -47,6 +62,7 @@ namespace interactive {
     }
 
     CallbackMap callbacks;
+    Command exit = "exit";
   };
 }
 
