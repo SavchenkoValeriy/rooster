@@ -1,6 +1,5 @@
 # Generic support for adding a unittest.
 function(add_unittest test_suite test_name)
-  message("Adding test: suite=${test_suite}, name=${test_name}, args=${ARGN}")
   add_llvm_executable(${test_name} ${ARGN})
   set(outdir ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR})
   set_output_directory(${test_name} BINARY_DIR ${outdir} LIBRARY_DIR ${outdir})

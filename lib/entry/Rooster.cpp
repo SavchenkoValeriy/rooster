@@ -4,7 +4,6 @@
 #include <support/ConsoleInputProvider.h>
 #include <completion/CompletionTool.h>
 #include <llvm/Support/CommandLine.h>
-//#include <functional>
 
 using namespace llvm;
 
