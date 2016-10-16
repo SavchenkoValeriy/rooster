@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.4.3)
+cmake_minimum_required(VERSION 3.2.2)
 
 project(Rooster
   ${cmake_3_0_PROJ_VERSION}
