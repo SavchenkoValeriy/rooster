@@ -1,0 +1,26 @@
+dist: trusty
+sudo: required
+
+language: cpp
+compiler: clang
+
+#cache:
+#  apt: true
+#  directories:
+
+before_install:
+  - source ./scripts/travis/defaults.sh
+
+install:
+  - sudo -E ./scripts/travis/install-deps.sh
+
+before_script:
+  - ./scripts/travis/configure.sh
+
+script:
+  - ./scripts/travis/build.sh
+  - ./scripts/travis/test.sh
+
+email:
+  on_success: change
+  on_failure: always
