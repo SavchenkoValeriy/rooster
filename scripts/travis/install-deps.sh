@@ -1,11 +1,11 @@
 #!/bin/bash
 
-apt-get -y update
-apt-get install -y --no-install-recommends \
-        build-essential \
-        clang-3.8 \
-        llvm-3.8-dev \
-        libboost-dev
+sudo apt-get -y update
+sudo apt-get install -y --no-install-recommends \
+     build-essential \
+     clang-3.8 \
+     llvm-3.8-dev \
+     libboost-dev
 
 #install hana if it's not installed
 HANA_DIR="${DEP_DIR}/hana"
@@ -24,7 +24,7 @@ else
     cd build
     cmake ..
 fi
-make install
+sudo make install
 popd
 
 #install hana if it's not installed
@@ -44,5 +44,5 @@ else
     cd build
     cmake ..
 fi
-make install
+sudo make install
 popd
