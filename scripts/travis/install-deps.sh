@@ -6,9 +6,6 @@ apt-get install -y --no-install-recommends \
         clang-3.8 \
         libboost-dev
 
-export CC=clang
-export CXX=clang++
-
 #install hana if it's not installed
 HANA_DIR="${DEP_DIR}/hana"
 HANA_BUILD_DIR="${HANA_DIR}/build"
