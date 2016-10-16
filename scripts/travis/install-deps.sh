@@ -4,6 +4,7 @@ apt-get -y update
 apt-get install -y --no-install-recommends \
         build-essential \
         clang-3.8 \
+        llvm-3.8-dev \
         libboost-dev
 
 #install hana if it's not installed
