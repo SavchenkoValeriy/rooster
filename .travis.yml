@@ -6,12 +6,15 @@ compiler: clang
 
 cache:
   apt: true
-#  directories:
+  directories:
+    - ~/deps/hana
+    - ~/deps/json
 
 before_install:
   - source ./scripts/travis/defaults.sh
 
 install:
+  - DEP_DIR="~/deps"
   - sudo -E ./scripts/travis/install-deps.sh
 
 before_script:
