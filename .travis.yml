@@ -4,8 +4,8 @@ sudo: required
 language: cpp
 compiler: clang
 
-#cache:
-#  apt: true
+cache:
+  apt: true
 #  directories:
 
 before_install:
