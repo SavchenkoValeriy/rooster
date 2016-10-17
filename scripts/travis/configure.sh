@@ -8,6 +8,6 @@ cd build
 
 CLANG_CMAKE=-DClang_DIR=${CLANG_DIR}/lib/cmake/clang
 LLVM_CMAKE=-DLLVM_DIR=${CLANG_DIR}/lib/cmake/llvm
-ARGS="-DCMAKE_BUILD_TYPE=Release ${CLANG_CMAKE} ${LLVM_CMAKE}"
+ARGS="-DCMAKE_BUILD_TYPE=Release"
 
-cmake .. $ARGS
+cmake .. $ARGS $CLANG_CMAKE $LLVM_CMAKE
