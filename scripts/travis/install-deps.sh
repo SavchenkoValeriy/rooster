@@ -4,6 +4,10 @@ sudo apt-get -y update
 sudo apt-get install -y --no-install-recommends \
      build-essential
 
+if [ ! -d "${DEP_DIR}"]; then
+    mkdir $DEP_DIR
+fi
+
 #install clang 3.9.0
 CLANG_VER="3.9.0"
 CLANG_DIR="${DEP_DIR}/clang-${CLANG_VER}"

@@ -16,6 +16,7 @@ before_install:
 install:
   - DEP_DIR="~/deps"
   - source ./scripts/travis/install-deps.sh
+  - export CLANG_DIR
 
 before_script:
   - ./scripts/travis/configure.sh
