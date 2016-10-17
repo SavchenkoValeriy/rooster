@@ -8,7 +8,7 @@ sudo apt-get install -y --no-install-recommends \
 CLANG_VER="3.9.0"
 CLANG_DIR="${DEP_DIR}/clang-${CLANG_VER}"
 pushd .
-if [ -d "$CLANG_DIR" ]; then
+if [ ! -d "$CLANG_DIR" ]; then
     CLANG_TAR="clang+llvm-${CLANG_VER}-x86_64-linux-gnu-ubuntu-16.04.tar.xz"
     mkdir $CLANG_DIR
     cd $CLANG_DIR
