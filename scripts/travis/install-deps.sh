@@ -2,10 +2,7 @@
 
 sudo apt-get -y update
 sudo apt-get install -y --no-install-recommends \
-     build-essential \
-     clang-3.8 \
-     llvm-3.8-dev \
-     libboost-dev
+     build-essential
 
 #install hana if it's not installed
 HANA_DIR="${DEP_DIR}/hana"

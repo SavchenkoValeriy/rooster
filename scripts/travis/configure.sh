@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -x
+
 # CMake configuration
 mkdir -p build
 cd build
