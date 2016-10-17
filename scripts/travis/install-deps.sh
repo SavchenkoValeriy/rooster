@@ -4,6 +4,19 @@ sudo apt-get -y update
 sudo apt-get install -y --no-install-recommends \
      build-essential
 
+#install clang 3.9.0
+CLANG_VER="3.9.0"
+CLANG_DIR="${DEP_DIR}/clang-${CLANG_VER}"
+pushd .
+if [ -d "$CLANG_DIR" ]; then
+    CLANG_TAR="clang+llvm-${CLANG_VER}-x86_64-linux-gnu-ubuntu-16.04.tar.xz"
+    mkdir $CLANG_DIR
+    cd $CLANG_DIR
+    wget "http://llvm.org/releases/${CLANG_VER}/${CLANG_TAR}"
+    tar xf $CLANG_TAR -C . --strip-components=1
+fi
+popd
+
 #install hana if it's not installed
 HANA_DIR="${DEP_DIR}/hana"
 HANA_BUILD_DIR="${HANA_DIR}/build"
@@ -19,7 +32,7 @@ else
     cd hana
     mkdir build
     cd build
-    cmake ..
+    CC=${CLANG_DIR}/bin/clang CXX=${CLANG_DIR}/bin/clang++ cmake ..
 fi
 sudo make install
 popd
@@ -40,20 +53,7 @@ else
     git checkout -b v2.0.0
     mkdir build
     cd build
-    cmake ..
+    CC=${CLANG_DIR}/bin/clang CXX=${CLANG_DIR}/bin/clang++ cmake ..
 fi
 sudo make install
-popd
-
-#install clang 3.9.0
-CLANG_VER="3.9.0"
-CLANG_DIR="${DEP_DIR}/clang-${CLANG_VER}"
-pushd .
-if [ -d "$CLANG_DIR" ]; then
-    CLANG_TAR="clang+llvm-${CLANG_VER}-x86_64-linux-gnu-ubuntu-16.04.tar.xz"
-    mkdir $CLANG_DIR
-    cd $CLANG_DIR
-    wget "http://llvm.org/releases/${CLANG_VER}/${CLANG_TAR}"
-    tar xf $CLANG_TAR -C . --strip-components=1
-fi
 popd
