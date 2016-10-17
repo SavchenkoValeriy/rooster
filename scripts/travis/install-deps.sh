@@ -4,10 +4,9 @@ sudo apt-get -y update
 sudo apt-get install -y --no-install-recommends \
      build-essential \
      clang-3.8 \
-     libstdc++-5-dev \
      libboost-dev
 
-if [ ! -d "${DEP_DIR}"]; then
+if [ ! -d "${DEP_DIR}" ]; then
     mkdir $DEP_DIR
 fi
 
