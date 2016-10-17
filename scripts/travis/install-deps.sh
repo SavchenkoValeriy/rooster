@@ -2,7 +2,8 @@
 
 sudo apt-get -y update
 sudo apt-get install -y --no-install-recommends \
-     build-essential
+     build-essential \
+     clang-3.8
 
 if [ ! -d "${DEP_DIR}"]; then
     mkdir $DEP_DIR
@@ -36,7 +37,7 @@ else
     cd hana
     mkdir build
     cd build
-    CC=${CLANG_DIR}/bin/clang CXX=${CLANG_DIR}/bin/clang++ cmake ..
+    cmake ..
 fi
 sudo make install
 popd
@@ -57,7 +58,7 @@ else
     git checkout -b v2.0.0
     mkdir build
     cd build
-    CC=${CLANG_DIR}/bin/clang CXX=${CLANG_DIR}/bin/clang++ cmake ..
+    cmake ..
 fi
 sudo make install
 popd
