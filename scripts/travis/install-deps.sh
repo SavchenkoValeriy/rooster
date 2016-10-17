@@ -37,6 +37,7 @@ else
     cd "${DEP_DIR}"
     git clone https://github.com/nlohmann/json.git
     cd json
+    git checkout -b v2.0.0
     mkdir build
     cd build
     cmake ..
