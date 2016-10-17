@@ -15,7 +15,7 @@ before_install:
 
 install:
   - DEP_DIR="~/deps"
-  - ./scripts/travis/install-deps.sh
+  - source ./scripts/travis/install-deps.sh
 
 before_script:
   - ./scripts/travis/configure.sh

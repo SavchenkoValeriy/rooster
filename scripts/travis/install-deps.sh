@@ -27,7 +27,7 @@ fi
 sudo make install
 popd
 
-#install hana if it's not installed
+#install json if it's not installed
 JSON_DIR="${DEP_DIR}/json"
 JSON_BUILD_DIR="${JSON_DIR}/build"
 pushd .
@@ -45,4 +45,17 @@ else
     cmake ..
 fi
 sudo make install
+popd
+
+#install clang 3.9.0
+CLANG_VER="3.9.0"
+CLANG_DIR="${DEP_DIR}/clang-${CLANG_VER}"
+pushd .
+if [ -d "$CLANG_DIR" ]; then
+    CLANG_TAR="clang+llvm-${CLANG_VER}-x86_64-linux-gnu-ubuntu-16.04.tar.xz"
+    mkdir $CLANG_DIR
+    cd $CLANG_DIR
+    wget "http://llvm.org/releases/${CLANG_VER}/${CLANG_TAR}"
+    tar xf $CLANG_TAR -C . --strip-components=1
+fi
 popd
