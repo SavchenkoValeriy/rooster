@@ -46,6 +46,10 @@ namespace {
   int InputReaderMock::parse(const std::string &arg) {
     return mock->parseInt(arg);
   }
+  template <>
+  unsigned InputReaderMock::parse(const std::string &arg) {
+    return mock->parseInt(arg);
+  }
 
 
   class InputProviderMock : public InputProvider {
@@ -72,6 +76,9 @@ namespace {
     MOCK_METHOD3(threeStrings, void(const std::string &,
                                     const std::string &,
                                     const std::string &));
+    MOCK_METHOD2(diffFirst, void(const std::string &, int));
+    MOCK_METHOD3(diffSecond, void(int, int, const std::string &));
+    MOCK_METHOD1(diffThird, void(unsigned));
   };
 }
 
@@ -130,6 +137,46 @@ TEST_F(InteractiveModeTest, StringCallbackTest) {
       .WillOnce(Return<InputReader::CommandArgsContainer>({"a", "b", "c"}));
   EXPECT_CALL(mock, threeStrings("la", "la", "la"));
   EXPECT_CALL(mock, threeStrings("a", "b", "c"));
+
+  tested.run();
+}
+
+TEST_F(InteractiveModeTest, DifferentArgsTest) {
+  CallbackProvider mock;
+  CallbackTy<void, std::string, int> first = [&mock](std::string a, int b) {
+    return mock.diffFirst(a, b);
+  };
+  CallbackTy<void, int, int, std::string> second = [&mock](int a, int b, std::string c) {
+    return mock.diffSecond(a, b, c);
+  };
+  CallbackTy<void, unsigned> third = [&mock](int a) {
+    return mock.diffThird(a);
+  };
+  tested.registerCallback("first", first);
+  tested.registerCallback("second", second);
+  tested.registerCallback("third", third);
+
+  EXPECT_CALL(*InputReaderMock::mock, getCommand(""))
+    .WillOnce(Return("first"))
+    .WillOnce(Return("second"))
+    .WillOnce(Return("second"))
+    .WillOnce(Return("third"))
+    .WillOnce(Return("first"))
+    .WillOnce(Return("third"))
+    .WillOnce(Return("exit"));
+  EXPECT_CALL(*InputReaderMock::mock, getArguments(""))
+    .WillOnce(Return<InputReader::CommandArgsContainer>({"No", "1"}))
+    .WillOnce(Return<InputReader::CommandArgsContainer>({"2", "3", "Yes"}))
+    .WillOnce(Return<InputReader::CommandArgsContainer>({"42", "15", "Linux"}))
+    .WillOnce(Return<InputReader::CommandArgsContainer>({"72"}))
+    .WillOnce(Return<InputReader::CommandArgsContainer>({"Hello", "9000"}))
+    .WillOnce(Return<InputReader::CommandArgsContainer>({"1841"}));
+  EXPECT_CALL(mock, diffFirst("No", 1));
+  EXPECT_CALL(mock, diffFirst("Hello", 9000));
+  EXPECT_CALL(mock, diffSecond(2, 3, "Yes"));
+  EXPECT_CALL(mock, diffSecond(42, 15, "Linux"));
+  EXPECT_CALL(mock, diffThird(72));
+  EXPECT_CALL(mock, diffThird(1841));
 
   tested.run();
 }
