@@ -34,6 +34,10 @@ namespace interactive {
       }
     }
 
+    void clear() {
+      callbacks.clear();
+    }
+
   private:
     using CommandArgs = typename InputReaderTy::CommandArgsContainer;
     using CallbackMap = std::map<Command, CallbackTy<void, CommandArgs &> >;
