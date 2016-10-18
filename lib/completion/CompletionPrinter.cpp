@@ -168,13 +168,9 @@ CompletionPrinter::ProcessCodeCompleteResults(Sema &SemaRef,
                                               unsigned NumResults) {
   std::stable_sort(Results, Results + NumResults);
 
-  StringRef Filter = SemaRef.getPreprocessor().getCodeCompletionFilter();
-
   // Print the results.
   OS << "(\n";
   for (unsigned I = 0; I != NumResults; ++I) {
-    if(isResultFilteredOut(Filter, Results[I]))
-      continue;
     OS << "(";
     CompletionCandidate candidate;
     switch (Results[I].Kind) {

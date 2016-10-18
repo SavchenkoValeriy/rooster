@@ -24,7 +24,7 @@ public:
                                  OverloadCandidate *Candidates,
                                  unsigned NumCandidates) override;
 
-  bool isResultFilteredOut(llvm::StringRef Filter, clang::CodeCompletionResult Results) override;
+  bool isResultFilteredOut(llvm::StringRef Filter, clang::CodeCompletionResult Results);
 
   clang::CodeCompletionAllocator &getAllocator() override {
     return CCTUInfo.getAllocator();
