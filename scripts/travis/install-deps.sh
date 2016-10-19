@@ -3,37 +3,68 @@
 sudo apt-get -y update
 sudo apt-get install -y --no-install-recommends \
      build-essential \
-     clang-3.8 \
-     libboost-dev
+     libboost-dev \
+     gcc \
+     g++ \
+     python \
+     libtool \
+     m4 \
+     autoconf \
+     automake \
+     libtool \
+     zlib1g-dev \
+     ninja-build \
+     cmake
 
-if [ ! -d "${DEP_DIR}" ]; then
-    mkdir $DEP_DIR
+if [ ! -d "$DEP_DIR" ]; then
+    mkdir -p "$DEP_DIR"
 fi
 
 #install clang 3.9.0
-CLANG_VER="3.9.0"
-CLANG_DIR="${DEP_DIR}/clang-${CLANG_VER}"
+CLANG_VER="39"
+CLANG_DIR="$DEP_DIR/clang-$CLANG_VER"
+CLANG_SOURCE="$DEP_DIR/clang-source"
 pushd .
 if [ ! -d "$CLANG_DIR" ]; then
-    CLANG_TAR="clang+llvm-${CLANG_VER}-x86_64-linux-gnu-ubuntu-16.04.tar.xz"
-    mkdir $CLANG_DIR
-    cd $CLANG_DIR
-    wget "http://llvm.org/releases/${CLANG_VER}/${CLANG_TAR}"
-    tar xf $CLANG_TAR -C . --strip-components=1
+    if [ ! -d "$CLANG_SOURCE" ]; then
+        echo "Building LLVM/clang from source..."
+        mkdir -p "$CLANG_SOURCE"
+        cd "$CLANG_SOURCE"
+        if [ ! -e llvm ]; then
+            git clone http://llvm.org/git/llvm.git
+            git checkout -b release_$CLANG_VER
+        fi
+        pushd .
+        cd llvm/tools
+        if [ ! -e clang ]; then
+            git clone http://llvm.org/git/clang.git
+            git checkout -b release_$CLANG_VER
+        fi
+        popd
+        cd llvm
+        mkdir build
+        cd build
+        cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$CLANG_DIR" \
+              -DLLVM_ENABLE_EH=ON -DLLVM_ENABLE_RTTI=ON
+        make -j5
+    else
+        cd "$CLANG_SOURCE"/build
+    fi
+    make install
 fi
 popd
 
 #install hana if it's not installed
-HANA_DIR="${DEP_DIR}/hana"
-HANA_BUILD_DIR="${HANA_DIR}/build"
+HANA_DIR="$DEP_DIR/hana"
+HANA_BUILD_DIR="$HANA_DIR/build"
 pushd .
 if [ -d "$HANA_DIR" ]; then
     echo "Using cached hana build ..."
-    cd $HANA_DIR
+    cd $HANA_DIR/build
 else
     echo "Building hana from source ..."
     rm -rf $HANA_DIR
-    cd "${DEP_DIR}"
+    cd "$DEP_DIR"
     git clone https://github.com/boostorg/hana.git
     cd hana
     mkdir build
@@ -44,16 +75,16 @@ sudo make install
 popd
 
 #install json if it's not installed
-JSON_DIR="${DEP_DIR}/json"
-JSON_BUILD_DIR="${JSON_DIR}/build"
+JSON_DIR="$DEP_DIR/json"
+JSON_BUILD_DIR="$JSON_DIR/build"
 pushd .
 if [ -d "$JSON_DIR" ]; then
     echo "Using cached json build ..."
-    cd $JSON_DIR
+    cd $JSON_DIR/build
 else
     echo "Building json from source ..."
     rm -rf $JSON_DIR
-    cd "${DEP_DIR}"
+    cd "$DEP_DIR"
     git clone https://github.com/nlohmann/json.git
     cd json
     git checkout -b v2.0.0

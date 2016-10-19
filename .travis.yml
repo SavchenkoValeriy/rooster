@@ -7,8 +7,7 @@ compiler: clang
 cache:
   apt: true
   directories:
-    - ~/deps/hana
-    - ~/deps/json
+    - ~/deps
 
 before_install:
   - source ./scripts/travis/defaults.sh
