@@ -1,6 +1,6 @@
 set(LLVM_LINK_COMPONENTS support)
 
-add_llvm_library(roosterSupport
+add_rooster_library(roosterSupport
   CommandLineOptions.cpp
   JSONInputReader.cpp
   ConsoleInputProvider.cpp

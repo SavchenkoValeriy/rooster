@@ -1,4 +1,4 @@
-add_llvm_library(roosterCoreAST
+add_rooster_library(roosterCoreAST
   StatisticsCollector.cpp
   PlainPrinter.cpp
 )

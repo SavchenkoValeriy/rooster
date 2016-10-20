@@ -1,4 +1,4 @@
-add_llvm_library(roosterCompletion
+add_rooster_library(roosterCompletion
   CompletionTool.cpp
   CompletionPrinter.cpp)
 
