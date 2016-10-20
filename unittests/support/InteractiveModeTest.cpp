@@ -180,3 +180,45 @@ TEST_F(InteractiveModeTest, DifferentArgsTest) {
 
   tested.run();
 }
+
+TEST_F(InteractiveModeTest, WrongNumberOfArgumentsTest) {
+  CallbackProvider mock;
+  CallbackTy<void, int> action = [&mock](int a) {
+    return mock.diffThird(a);
+  };
+  tested.registerCallback("do", action);
+
+  EXPECT_CALL(*InputReaderMock::mock, getCommand(""))
+    .WillOnce(Return("do"))
+    .WillOnce(Return("do"))
+    .WillOnce(Return("do"))
+    .WillOnce(Return("exit"));
+  EXPECT_CALL(*InputReaderMock::mock, getArguments(""))
+    .WillOnce(Return<InputReader::CommandArgsContainer>({}))
+    .WillOnce(Return<InputReader::CommandArgsContainer>({"No"}))
+    .WillOnce(Return<InputReader::CommandArgsContainer>({"2", "3"}));
+
+  EXPECT_CALL(mock, diffThird(_)).Times(0);
+
+  try {
+    tested.run();
+  } catch (WrongNumberOfArgumentsException &e) {
+    ASSERT_EQ(e.getExpectedNumber(), 1);
+    ASSERT_EQ(e.getProvidedNumber(), 0);
+  }
+
+  try {
+    tested.run();
+  } catch (ParseException &e) {
+    ASSERT_EQ(e.getPosition(), 0);
+  }
+
+  try {
+    tested.run();
+  } catch (WrongNumberOfArgumentsException &e) {
+    ASSERT_EQ(e.getExpectedNumber(), 1);
+    ASSERT_EQ(e.getProvidedNumber(), 2);
+  }
+
+  tested.run();
+}
