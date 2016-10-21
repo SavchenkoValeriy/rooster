@@ -222,3 +222,17 @@ TEST_F(InteractiveModeTest, WrongNumberOfArgumentsTest) {
 
   tested.run();
 }
+
+TEST_F(InteractiveModeTest, WrongCommandTest) {
+  CallbackProvider mock;
+  EXPECT_CALL(*InputReaderMock::mock, getCommand(""))
+    .WillOnce(Return("make-magic"));
+  EXPECT_CALL(*InputReaderMock::mock, getArguments(""))
+    .WillOnce(Return<InputReader::CommandArgsContainer>({}));
+
+  try {
+    tested.run();
+  } catch (WrongCommandException &e) {
+    ASSERT_EQ(e.getCommand(), "make-magic");
+  }
+}

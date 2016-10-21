@@ -31,8 +31,12 @@ namespace interactive {
         if (command == exit)
           return;
         auto arguments = InputReaderTy::getArguments(input);
+        auto result = callbacks.find(command);
+        if (result == callbacks.end())
+          throw WrongCommandException(command);
         try {
-          callbacks[command](arguments);
+          auto callback = result->second;
+          callback(arguments);
         } catch(InteractiveModeException &e) {
           e.setFailedCommand(command);
           throw;

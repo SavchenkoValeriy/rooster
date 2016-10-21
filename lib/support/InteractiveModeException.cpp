@@ -61,4 +61,15 @@ namespace interactive {
   unsigned WrongNumberOfArgumentsException::getProvidedNumber() const noexcept {
     return provided;
   }
+
+  WrongCommandException::WrongCommandException(const std::string &cmd) :
+    command(cmd) {
+    std::stringstream ss;
+    ss << "Wrong command (\"" << command << "\") has been provided.";
+    setMessage(ss.str());
+  }
+
+  const std::string &WrongCommandException::getCommand() const noexcept {
+    return command;
+  }
 }

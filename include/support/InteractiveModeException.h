@@ -2,7 +2,7 @@
 #define ROOSTER_INTERACTIVEMODEEXCEPTION_H
 
 #include <exception>
-#include <sstream>
+#include <string>
 
 namespace interactive {
   class InteractiveModeException : public std::exception {
@@ -32,6 +32,14 @@ namespace interactive {
     unsigned getProvidedNumber() const noexcept;
   private:
     unsigned expected, provided;
+  };
+
+  class WrongCommandException : public InteractiveModeException {
+  public:
+    WrongCommandException(const std::string &command);
+    const std::string &getCommand() const noexcept;
+  private:
+    std::string command;
   };
 }
 
