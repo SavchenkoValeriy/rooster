@@ -4,6 +4,7 @@ add_rooster_library(roosterSupport
   CommandLineOptions.cpp
   JSONInputReader.cpp
   ConsoleInputProvider.cpp
+  InteractiveModeException.cpp
   )
 
 set_property(TARGET roosterSupport PROPERTY CXX_STANDARD 14)
