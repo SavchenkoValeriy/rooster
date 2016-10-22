@@ -34,7 +34,7 @@ namespace interactive {
   ParseException::ParseException(unsigned i, const std::string &raw) :
     InteractiveModeException(), position(i) {
     std::stringstream ss;
-    ss << "Couldn't parse the " << (i + 1) << getSuffix(i) << " argument";
+    ss << "Couldn't parse the " << (i + 1) << getSuffix(i + 1) << " argument";
     if (!raw.empty())
       ss << ": " << raw;
     ss << ".";
