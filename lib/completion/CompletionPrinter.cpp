@@ -94,6 +94,7 @@ public:
   const Postcompletion &getPostcompletion() { return PostcompletionInfo; }
   unsigned getPriority() { return Priority; }
   unsigned getAnnotation() { return TypedText.size(); }
+  static CompletionCandidate createOutOf(CodeCompletionString &CCS);
 private:
   void addToSignature(const char *value) {
     addStringValue(Signature, value);
@@ -119,6 +120,28 @@ void print(llvm::raw_ostream &OS, const std::string &value) {
 
 void print(llvm::raw_ostream &OS, unsigned value) {
   OS << value << " ";
+}
+
+CompletionCandidate CompletionCandidate::createOutOf(CodeCompletionString &CCS) {
+  CompletionCandidate result;
+  result.setTypedText(CCS.getTypedText());
+  result.setPriority(CCS.getPriority());
+  result.setBriefComment(CCS.getBriefComment());
+  for (auto chunk : CCS) {
+    switch (chunk.Kind) {
+    case CodeCompletionString::CK_ResultType:
+      result.setResultType(chunk.Text);
+      break;
+    case CodeCompletionString::CK_Optional:
+      break;
+    case CodeCompletionString::CK_Placeholder:
+      result.addArgumentToSignature(chunk.Text);
+      break;
+    default:
+      result.addTypedTextToSignature(chunk.Text);
+    }
+  }
+  return std::move(result);
 }
 
 namespace print {
@@ -171,61 +194,15 @@ CompletionPrinter::ProcessCodeCompleteResults(Sema &SemaRef,
   // Print the results.
   OS << "(\n";
   for (unsigned I = 0; I != NumResults; ++I) {
-    OS << "(";
     CompletionCandidate candidate;
-    switch (Results[I].Kind) {
-    case CodeCompletionResult::RK_Declaration:
-      if (Results[I].Hidden)
-        OS << " (Hidden)";
-      if (CodeCompletionString *CCS
-            = Results[I].CreateCodeCompletionString(SemaRef, Context,
+    if (CodeCompletionString *CCS
+        = Results[I].CreateCodeCompletionString(SemaRef, Context,
                                                     getAllocator(),
                                                     CCTUInfo,
                                                     includeBriefComments())) {
-        candidate.setTypedText(CCS->getTypedText());
-        candidate.setPriority(CCS->getPriority());
-        candidate.setBriefComment(CCS->getBriefComment());
-        for (auto chunk : *CCS) {
-          switch (chunk.Kind) {
-          case CodeCompletionString::CK_ResultType:
-            candidate.setResultType(chunk.Text);
-            break;
-          case CodeCompletionString::CK_Optional:
-            break;
-          case CodeCompletionString::CK_Placeholder:
-            candidate.addArgumentToSignature(chunk.Text);
-            break;
-          default:
-            candidate.addTypedTextToSignature(chunk.Text);
-          }
-        }
-      }
-      OS << candidate;
-      break;
-
-    case CodeCompletionResult::RK_Keyword:
-      OS << Results[I].Keyword;
-      break;
-
-    case CodeCompletionResult::RK_Macro: {
-      OS << Results[I].Macro->getName();
-      if (CodeCompletionString *CCS
-            = Results[I].CreateCodeCompletionString(SemaRef, Context,
-                                                    getAllocator(),
-                                                    CCTUInfo,
-                                                    includeBriefComments())) {
-        OS << " : " << CCS->getAsString();
-      }
-      break;
+      candidate = CompletionCandidate::createOutOf(*CCS);
     }
-
-    case CodeCompletionResult::RK_Pattern: {
-      OS << "Pattern : "
-         << Results[I].Pattern->getAsString();
-      break;
-    }
-    }
-    OS << ")\n";
+  OS << "(" << candidate << ")\n";
   }
   OS << ")\n";
 }
