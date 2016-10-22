@@ -26,20 +26,27 @@ namespace interactive {
 
     void run() {
       while(true) {
-        auto input = InputProviderTy::read();
-        auto command = InputReaderTy::getCommand(input);
-        if (command == exit)
-          return;
-        auto arguments = InputReaderTy::getArguments(input);
-        auto result = callbacks.find(command);
-        if (result == callbacks.end())
-          throw WrongCommandException(command);
         try {
-          auto callback = result->second;
-          callback(arguments);
-        } catch(InteractiveModeException &e) {
-          e.setFailedCommand(command);
+          auto input = InputProviderTy::read();
+          auto command = InputReaderTy::getCommand(input);
+          if (command == exit)
+            return;
+          auto arguments = InputReaderTy::getArguments(input);
+          auto result = callbacks.find(command);
+          if (result == callbacks.end())
+            throw WrongCommandException(command);
+          try {
+            auto callback = result->second;
+            callback(arguments);
+          } catch(InteractiveModeException &e) {
+            e.setFailedCommand(command);
+            throw;
+          }
+
+        } catch (InteractiveModeException&) {
           throw;
+        } catch (...) {
+          throw IllegalFormatException();
         }
       }
     }

@@ -41,6 +41,11 @@ namespace interactive {
   private:
     std::string command;
   };
+
+  class IllegalFormatException : public InteractiveModeException {
+  public:
+    IllegalFormatException();
+  };
 }
 
 #endif /* ROOSTER_INTERACTIVEMODEEXCEPTION_H */

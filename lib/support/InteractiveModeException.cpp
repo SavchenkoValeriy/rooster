@@ -72,4 +72,9 @@ namespace interactive {
   const std::string &WrongCommandException::getCommand() const noexcept {
     return command;
   }
+
+  IllegalFormatException::IllegalFormatException() :
+    InteractiveModeException() {
+    setMessage("Ill-formed command has been provided.");
+  }
 }
