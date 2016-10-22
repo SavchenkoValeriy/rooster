@@ -48,7 +48,11 @@ int main(int argc, const char **argv) {
     };
     server.registerCallback("complete",
                             completionCallback);
-    server.run();
+    try {
+      server.run();
+    } catch (InteractiveModeException &e) {
+      llvm::errs() << e.what() << "\n";
+    }
   } else {
     Rooster.completeAt(fileToComplete, line, column);
   }
