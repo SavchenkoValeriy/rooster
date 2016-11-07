@@ -70,6 +70,19 @@ namespace {
   std::unique_ptr<InputReaderMockObject> InputReaderMock::mock;
   std::unique_ptr<InputProviderMockObject> InputProviderMock::mock;
 
+  class ComplexObject {
+  public:
+    int index;
+    std::string name;
+  };
+
+  bool operator== (const ComplexObject &rhs, const ComplexObject &lhs) {
+    return rhs.index == lhs.index && rhs.name == lhs.name;
+  }
+  bool operator!= (const ComplexObject &rhs, const ComplexObject &lhs) {
+    return !(rhs == lhs);
+  }
+
   class CallbackProvider {
   public:
     MOCK_METHOD0(simple, void());
@@ -79,6 +92,7 @@ namespace {
     MOCK_METHOD2(diffFirst, void(const std::string &, int));
     MOCK_METHOD3(diffSecond, void(int, int, const std::string &));
     MOCK_METHOD1(diffThird, void(unsigned));
+    MOCK_METHOD1(complexProcessor, void(ComplexObject));
   };
 }
 
@@ -235,4 +249,40 @@ TEST_F(InteractiveModeTest, WrongCommandTest) {
   } catch (WrongCommandException &e) {
     ASSERT_EQ(e.getCommand(), "make-magic");
   }
+}
+
+namespace {
+  template <>
+  ComplexObject InputReaderMock::parse(const std::string &arg) {
+    int returnIndex = -1;
+    if (arg == "emacs") returnIndex = 42;
+    if (arg == "vim") returnIndex = 15;
+    if (arg == "nano") returnIndex = 4;
+    return {returnIndex, arg};
+  }
+}
+
+TEST_F(InteractiveModeTest, CustomParserTest) {
+  CallbackProvider mock;
+  CallbackTy<void, ComplexObject> action = [&mock](ComplexObject obj) {
+    return mock.complexProcessor(obj);
+  };
+
+  tested.registerCallback("do-complex", action);
+
+  EXPECT_CALL(*InputReaderMock::mock, getCommand(""))
+    .WillOnce(Return("do-complex"))
+    .WillOnce(Return("do-complex"))
+    .WillOnce(Return("do-complex"))
+    .WillOnce(Return("exit"));
+  EXPECT_CALL(*InputReaderMock::mock, getArguments(""))
+    .WillOnce(Return<InputReader::CommandArgsContainer>({"emacs"}))
+    .WillOnce(Return<InputReader::CommandArgsContainer>({"vim"}))
+    .WillOnce(Return<InputReader::CommandArgsContainer>({"nano"}));
+
+  EXPECT_CALL(mock, complexProcessor(ComplexObject{42, "emacs"}));
+  EXPECT_CALL(mock, complexProcessor(ComplexObject{15, "vim"}));
+  EXPECT_CALL(mock, complexProcessor(ComplexObject{4, "nano"}));
+
+  tested.run();
 }
