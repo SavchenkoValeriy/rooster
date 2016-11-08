@@ -7,13 +7,13 @@ compiler: clang
 cache:
   apt: true
   directories:
-    - ~/deps
+    - $HOME/deps
 
 before_install:
   - source ./scripts/travis/defaults.sh
 
 install:
-  - DEP_DIR="~/deps"
+  - DEP_DIR="$HOME/deps"
   - source ./scripts/travis/install-deps.sh
   - export CLANG_DIR
 
