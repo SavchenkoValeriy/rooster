@@ -2,10 +2,11 @@
 
 #sudo add-apt-repository -y ppa:george-edison55/cmake-3.x
 #sudo apt-get -y update
-#sudo apt-get install -y --no-install-recommends \
-#     build-essential \
-#     clang-3.8 \
-#     libboost-dev
+sudo apt-get install -y --no-install-recommends \
+     build-essential \
+     clang-3.8 \
+     g++-5 \
+     libboost-dev
 
 if [ ! -d "$DEP_DIR" ]; then
     mkdir -p "$DEP_DIR"
