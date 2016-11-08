@@ -4,6 +4,16 @@ sudo: required
 language: cpp
 compiler: clang
 
+addons:
+  apt:
+    sources
+      - george-edison55/cmake-3.x
+    packages
+      - g++-4.9
+      - clang-3.8
+      - libboost-dev
+      - cmake
+
 cache:
   apt: true
   directories:
