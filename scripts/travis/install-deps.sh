@@ -4,54 +4,23 @@ sudo add-apt-repository -y ppa:george-edison55/cmake-3.x
 sudo apt-get -y update
 sudo apt-get install -y --no-install-recommends \
      build-essential \
-     libboost-dev \
-     gcc \
-     g++ \
-     python \
-     libtool \
-     m4 \
-     autoconf \
-     automake \
-     libtool \
-     zlib1g-dev \
-     ninja-build \
-     cmake
+     clang-3.8 \
+     libboost-dev
 
 if [ ! -d "$DEP_DIR" ]; then
     mkdir -p "$DEP_DIR"
 fi
 
 #install clang 3.9.0
-CLANG_VER="39"
+CLANG_VER="3.9.0"
 CLANG_DIR="$DEP_DIR/clang-$CLANG_VER"
-CLANG_SOURCE="$DEP_DIR/clang-source"
 pushd .
 if [ ! -d "$CLANG_DIR" ]; then
-    if [ ! -d "$CLANG_SOURCE" ]; then
-        echo "Building LLVM/clang from source..."
-        mkdir -p "$CLANG_SOURCE"
-        cd "$CLANG_SOURCE"
-        if [ ! -e llvm ]; then
-            git clone http://llvm.org/git/llvm.git
-            git checkout -b release_$CLANG_VER
-        fi
-        pushd .
-        cd llvm/tools
-        if [ ! -e clang ]; then
-            git clone http://llvm.org/git/clang.git
-            git checkout -b release_$CLANG_VER
-        fi
-        popd
-        cd llvm
-        mkdir build
-        cd build
-        cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$CLANG_DIR" \
-              -DLLVM_ENABLE_EH=ON -DLLVM_ENABLE_RTTI=ON
-        make -j5
-    else
-        cd "$CLANG_SOURCE"/build
-    fi
-    make install
+    CLANG_TAR="clang+llvm-$CLANG_VER-x86_64-linux-gnu-ubuntu-16.04.tar.xz"
+    mkdir $CLANG_DIR
+    cd $CLANG_DIR
+    wget "http://llvm.org/releases/$CLANG_VER/$CLANG_TAR"
+    tar xf $CLANG_TAR -C . --strip-components=1
 fi
 popd
 
