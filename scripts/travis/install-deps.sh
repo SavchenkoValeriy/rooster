@@ -73,6 +73,7 @@ popd
 
 echo $PATH
 ls -la /usr/bin/*++*
+ls -la /usr/local/
 
 #install json if it's not installed
 JSON_DIR="$DEP_DIR/json"
