@@ -71,6 +71,9 @@ sudo make install
 popd
 
 
+echo $PATH
+ls -la /usr/bin/*++*
+
 #install json if it's not installed
 JSON_DIR="$DEP_DIR/json"
 JSON_BUILD_DIR="$JSON_DIR/build"
