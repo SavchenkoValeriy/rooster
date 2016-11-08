@@ -26,6 +26,8 @@ install:
   - DEP_DIR="$HOME/deps"
   - source ./scripts/travis/install-deps.sh
   - export CLANG_DIR
+  - export CLANG_BIN
+  - export CLANGXX_BIN
 
 before_script:
   - ./scripts/travis/configure.sh

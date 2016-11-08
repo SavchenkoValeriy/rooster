@@ -24,6 +24,8 @@ if [ ! -d "$CLANG_DIR" ]; then
     tar xf $CLANG_TAR -C . --strip-components=1
 fi
 popd
+CLANG_BIN="$CLANG_DIR/bin/clang"
+CLANGXX_BIN="$CLANG_BIN++"
 
 #install hana if it's not installed
 HANA_DIR="$DEP_DIR/hana"
@@ -86,7 +88,7 @@ else
     git checkout -b v2.0.0
     mkdir build
     cd build
-    CXX=g++-5 cmake ..
+    CXX=$CLANGXX_BIN cmake ..
 fi
 sudo make install
 popd
