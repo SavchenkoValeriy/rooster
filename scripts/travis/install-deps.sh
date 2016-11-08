@@ -15,6 +15,7 @@ fi
 CLANG_VER="3.9.0"
 CLANG_DIR="$DEP_DIR/clang-$CLANG_VER"
 pushd .
+echo "Looking for clang at $CLANG_DIR"
 if [ ! -d "$CLANG_DIR" ]; then
     CLANG_TAR="clang+llvm-$CLANG_VER-x86_64-linux-gnu-ubuntu-16.04.tar.xz"
     mkdir $CLANG_DIR
@@ -28,6 +29,7 @@ popd
 HANA_DIR="$DEP_DIR/hana"
 HANA_BUILD_DIR="$HANA_DIR/build"
 pushd .
+echo "Looking for hana at $HANA_DIR"
 if [ -d "$HANA_DIR" ]; then
     echo "Using cached hana build ..."
     cd $HANA_DIR/build
@@ -45,8 +47,32 @@ sudo make install
 popd
 
 #install json if it's not installed
+GTEST_DIR="$DEP_DIR/gtest"
+GTEST_BUILD_DIR="$GTEST_DIR/build"
+echo "Looking for gtest at $GTEST_DIR"
+pushd .
+if [ -d "$GTEST_DIR" ]; then
+    echo "Using cached gtest build ..."
+    cd $GTEST_DIR/build
+else
+    echo "Building gtest from source ..."
+    rm -rf $GTEST_DIR
+    cd "$DEP_DIR"
+    git clone https://github.com/google/googletest.git
+    cd googletest
+    git checkout -b release-1.8.0
+    mkdir build
+    cd build
+    cmake ..
+fi
+sudo make install
+popd
+
+
+#install json if it's not installed
 JSON_DIR="$DEP_DIR/json"
 JSON_BUILD_DIR="$JSON_DIR/build"
+echo "Looking for json at $JSON_DIR"
 pushd .
 if [ -d "$JSON_DIR" ]; then
     echo "Using cached json build ..."
@@ -60,7 +86,7 @@ else
     git checkout -b v2.0.0
     mkdir build
     cd build
-    cmake ..
+    CXX=g++-5 cmake ..
 fi
 sudo make install
 popd
