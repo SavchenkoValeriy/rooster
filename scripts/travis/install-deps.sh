@@ -88,7 +88,7 @@ else
     git checkout -b v2.0.0
     mkdir build
     cd build
-    CXX=clang++-3.8 cmake ..
+    CXX=g++-5 cmake ..
 fi
 sudo make install
 popd
