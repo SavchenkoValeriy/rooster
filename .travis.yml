@@ -5,6 +5,7 @@ language: cpp
 matrix:
   include:
     - os: linux
+      dist: xenial
       compiler: clang
       addons:
         apt:
