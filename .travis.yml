@@ -1,8 +1,6 @@
-dist: xenial
 sudo: required
 
 language: cpp
-compiler: clang
 
 matrix:
   include:
@@ -19,29 +17,22 @@ matrix:
             - libboost-dev
             - cmake
             - libstdc++6
-      env:
-        CC=clang-3.8
-        CXX=clang++-3.8
 
 cache:
   apt: true
   directories:
     - $HOME/deps
 
-before_install:
+before_script:
   - source ./scripts/travis/defaults.sh
-
-install:
-  - export CC=clang-3.8
-  - export CXX=clang++-3.8
+  - export CC=gcc-6
+  - export CXX=g++-6
   - DEP_DIR="$HOME/deps"
   - source ./scripts/travis/install-deps.sh
   - export PATH
   - export CLANG_DIR
   - export CLANG_BIN
   - export CLANGXX_BIN
-
-before_script:
   - ./scripts/travis/configure.sh
 
 script:
