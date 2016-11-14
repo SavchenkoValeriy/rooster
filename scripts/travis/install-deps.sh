@@ -25,6 +25,8 @@ if [ ! -d "$CLANG_DIR" ]; then
     tar xf $CLANG_TAR -C . --strip-components=1
 fi
 popd
+
+export PATH=$CLANG_DIR:$PATH
 CLANG_BIN="$CLANG_DIR/bin/clang"
 CLANGXX_BIN="$CLANG_BIN++"
 
@@ -93,7 +95,7 @@ else
     git checkout -b v2.0.0
     mkdir build
     cd build
-    CXX=g++-5 cmake ..
+    cmake ..
 fi
 sudo make install
 popd
