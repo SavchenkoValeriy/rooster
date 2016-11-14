@@ -15,6 +15,9 @@ addons:
       - libboost-dev
       - cmake
       - libstdc++6
+env:
+  CC=clang-3.8
+  CXX=clang++-3.8
 
 cache:
   apt: true

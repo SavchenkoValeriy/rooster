@@ -26,7 +26,7 @@ if [ ! -d "$CLANG_DIR" ]; then
 fi
 popd
 
-export PATH=$CLANG_DIR/bin:$PATH
+#export PATH=$CLANG_DIR/bin:$PATH
 CLANG_BIN="$CLANG_DIR/bin/clang"
 CLANGXX_BIN="$CLANG_BIN++"
 
