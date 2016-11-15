@@ -13,6 +13,8 @@ matrix:
             - george-edison55-precise-backports
           packages:
             - g++-6
+            - libc6-dev
+            - libstdc++6
             - cmake
             - cmake-data
 
