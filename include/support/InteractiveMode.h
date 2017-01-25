@@ -7,8 +7,8 @@
 #include <functional>
 #include <map>
 
-// @brief @namespace interactive contains features and functions related
-// to a generic mode to work interactively
+/// @Brief @namespace interactive contains features and functions related
+/// to a generic mode to work interactively
 namespace interactive {
   template <class ReturnTy, class ...ArgsTy>
   using CallbackTy = std::function<ReturnTy (ArgsTy...)>;
@@ -18,6 +18,11 @@ namespace interactive {
   class InteractiveMode {
   public:
     using Command = std::string;
+    /// @Brief for the given command registers the callback that should be called
+    ///
+    /// By types of arguments of the given @p callback it infers what parsers must be used
+    /// The number of arguments in the @p callback shows how many arguments there  should
+    /// be in a @p command.
     template <class CallbackReturnTy, class ...CallbackArgsTy>
     void registerCallback(const Command &command,
                           CallbackTy<CallbackReturnTy, CallbackArgsTy...> &callback) {
@@ -29,24 +34,31 @@ namespace interactive {
         try {
           auto input = InputProviderTy::read();
           auto command = InputReaderTy::getCommand(input);
+
+          // infinite loop shouldn't be really infinite
           if (command == exit)
             return;
+
           auto arguments = InputReaderTy::getArguments(input);
           auto result = callbacks.find(command);
+
+          // trying to call unregistered command
           if (result == callbacks.end())
             throw WrongCommandException(command);
+
           try {
             auto callback = result->second;
-            callback(arguments);
+            callback(arguments); // can throw
           } catch(InteractiveModeException &e) {
+            // put failed command name and rethrow
             e.setFailedCommand(command);
             throw;
           }
-
+        // if we failed with interactive mode exception
+        // just rethrow it
         } catch (InteractiveModeException&) {
           throw;
-        } catch (...) {
-          throw IllegalFormatException();
+        // otherwise smth
         }
       }
     }
@@ -83,7 +95,7 @@ namespace interactive {
     }
 
     CallbackMap callbacks;
-    Command exit = "exit";
+    Command exit = "exit"; /// default exit command is 'exit'
   };
 }
 
